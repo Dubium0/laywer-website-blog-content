@@ -3,21 +3,24 @@
     "slug": "bosanma-davalarinda-mal-paylasimi",
     "title": "Boşanma Davalarında Mal Paylaşımı Esasları",
     "date": "21 Haziran 2025",
-    "excerpt": "Türk Medeni Kanunu uyarınca evlilik birliği içinde edinilmiş malların paylaşımına ilişkin temel prensipler ve güncel Yargıtay kararları...",
+    "category": "Aile Hukuku",
+    "excerpt": "Türk Medeni Kanunu uyarınca evlilik birliği içinde edinilmiş malların paylaşımına ilişkin temel prensipler...",
     "image_url": "https://placehold.co/600x400/1d3557/f8f7f4?text=Hukuk"
   },
   {
     "slug": "is-hukukunda-arabuluculuk",
     "title": "İş Hukukunda Arabuluculuk Süreci",
     "date": "15 Haziran 2025",
-    "excerpt": "İşe iade davaları ve diğer işçilik alacakları için zorunlu hale gelen arabuluculuk kurumunun işleyişi ve tarafların hakları.",
+    "category": "İş Hukuku",
+    "excerpt": "İşe iade davaları ve diğer işçilik alacakları için zorunlu hale gelen arabuluculuk kurumunun işleyişi.",
     "image_url": "https://placehold.co/600x400/c9a227/f8f7f4?text=Adalet"
   },
   {
     "slug": "kira-sozlesmeleri-ve-tahliye",
     "title": "Kira Sözleşmelerinde Tahliye Sebepleri",
     "date": "10 Haziran 2025",
-    "excerpt": "Kiracının ve kiralayanın hakları çerçevesinde, hangi durumlarda kira sözleşmesinin feshedilebileceği ve tahliye davası açılabileceği.",
+    "category": "Gayrimenkul Hukuku",
+    "excerpt": "Kiracının ve kiralayanın hakları çerçevesinde, hangi durumlarda kira sözleşmesinin feshedilebileceği.",
     "image_url": "https://placehold.co/600x400/343a40/f8f7f4?text=Sözleşme"
   }
 ]
