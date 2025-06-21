@@ -99,7 +99,6 @@ class BlogManager(ttk.Window):
         self.refresh_listbox()
 
     # --- Backend Logic (Functions like load_posts, save_posts, etc.) ---
-    # The logic of these functions remains largely the same, but with updated messagebox styles.
     def load_posts(self):
         try:
             with open(INDEX_FILE, "r", encoding="utf-8") as f:
@@ -153,6 +152,29 @@ class BlogManager(ttk.Window):
         self.clear_form()
         messagebox.showinfo("Bilgi", "Yeni makale için bilgileri girin ve 'Güncelle' butonuna basın, ardından yayınlayın.")
 
+    # ===== FIX: New function to intelligently parse PDF =====
+    def parse_pdf_to_markdown(self, pdf_path):
+        """
+        Parses a PDF and extracts text blocks, preserving paragraphs.
+        """
+        doc = fitz.open(pdf_path)
+        all_blocks_text = []
+        for page in doc:
+            # Extract text as blocks, which usually correspond to paragraphs
+            # The `sort=True` argument helps maintain a logical reading order.
+            blocks = page.get_text("blocks", sort=True)
+            for b in blocks:
+                # b is a tuple: (x0, y0, x1, y1, text_lines, block_no, block_type)
+                # We only care about text blocks (block_type == 0)
+                if b[6] == 0:
+                    text_content = b[4].strip().replace('\r\n', '\n')
+                    if text_content:
+                        all_blocks_text.append(text_content)
+        doc.close()
+        # Join all blocks with double newlines to create Markdown paragraphs
+        return "\n\n".join(all_blocks_text)
+
+
     def update_post(self):
         title = self.title_entry.get().strip()
         category = self.category_entry.get().strip()
@@ -163,7 +185,6 @@ class BlogManager(ttk.Window):
             return
 
         selection_indices = self.post_listbox.curselection()
-        # If something is selected, update it. Otherwise, create a new one.
         if selection_indices:
             index = selection_indices[0]
             self.posts_data[index]["title"] = title
@@ -176,12 +197,11 @@ class BlogManager(ttk.Window):
             self.posts_data.insert(0, new_post_data)
             index = 0
             
-        # Update content if a valid PDF path is provided
         if pdf_path and os.path.exists(pdf_path):
             try:
-                doc = fitz.open(pdf_path)
-                content = "".join(page.get_text() for page in doc)
-                doc.close()
+                # Use the new intelligent parsing function
+                content = self.parse_pdf_to_markdown(pdf_path)
+                
                 with open(os.path.join(REPO_PATH, f"{self.posts_data[index]['slug']}.md"), "w", encoding="utf-8") as f:
                     f.write(content)
                 self.posts_data[index]["excerpt"] = " ".join(content.split()[:25]) + "..."
