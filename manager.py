@@ -6,6 +6,7 @@ import fitz  # PyMuPDF
 import git
 import datetime
 import re
+import statistics
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
@@ -152,28 +153,69 @@ class BlogManager(ttk.Window):
         self.clear_form()
         messagebox.showinfo("Bilgi", "Yeni makale için bilgileri girin ve 'Güncelle' butonuna basın, ardından yayınlayın.")
 
-    # ===== FIX: New function to intelligently parse PDF =====
+    # ===== FIX: New intelligent parsing function =====
     def parse_pdf_to_markdown(self, pdf_path):
         """
-        Parses a PDF and extracts text blocks, preserving paragraphs.
+        Parses a PDF more intelligently, attempting to preserve structure.
         """
         doc = fitz.open(pdf_path)
-        all_blocks_text = []
+        markdown_text = ""
+        
+        # First, find the most common font size to identify body text
+        font_sizes = []
         for page in doc:
-            # Extract text as blocks, which usually correspond to paragraphs
-            # The `sort=True` argument helps maintain a logical reading order.
-            blocks = page.get_text("blocks", sort=True)
-            for b in blocks:
-                # b is a tuple: (x0, y0, x1, y1, text_lines, block_no, block_type)
-                # We only care about text blocks (block_type == 0)
-                if b[6] == 0:
-                    text_content = b[4].strip().replace('\r\n', '\n')
-                    if text_content:
-                        all_blocks_text.append(text_content)
-        doc.close()
-        # Join all blocks with double newlines to create Markdown paragraphs
-        return "\n\n".join(all_blocks_text)
+            for block in page.get_text("dict")["blocks"]:
+                if "lines" in block:
+                    for line in block["lines"]:
+                        for span in line["spans"]:
+                            font_sizes.append(span["size"])
+        
+        if not font_sizes:
+            return "" # Empty document
+            
+        # Use the mode (most common value) as the body font size
+        body_font_size = statistics.mode(font_sizes)
 
+        # Now, process the document block by block
+        for page in doc:
+            blocks = page.get_text("dict", flags=fitz.TEXTFLAGS_SEARCH)["blocks"]
+            for block in blocks:
+                if "lines" in block:
+                    block_text = ""
+                    # Reconstruct the block's text from its spans
+                    for line in block["lines"]:
+                        for span in line["spans"]:
+                            text = span["text"].strip()
+                            if not text: continue
+                            
+                            # Check for bold text
+                            if "bold" in span["font"].lower():
+                                block_text += f"**{text}**"
+                            else:
+                                block_text += text
+                        block_text += " " # Add space between spans
+                    
+                    block_text = block_text.strip()
+                    if not block_text: continue
+
+                    # Heuristic to determine structure based on font size
+                    first_span_size = block["lines"][0]["spans"][0]["size"]
+                    
+                    # Check for bullet points (common characters)
+                    if block_text.startswith(('●', '•', '*', '-')):
+                        markdown_text += f"* {block_text[1:].strip()}\n"
+                    # Check for headings (significantly larger font)
+                    elif first_span_size > body_font_size * 1.4:
+                        markdown_text += f"\n## {block_text}\n\n"
+                    elif first_span_size > body_font_size * 1.15:
+                        markdown_text += f"\n### {block_text}\n\n"
+                    # Regular paragraph
+                    else:
+                        markdown_text += f"{block_text}\n\n"
+
+        doc.close()
+        # Clean up extra newlines
+        return re.sub(r'\n{3,}', '\n\n', markdown_text).strip()
 
     def update_post(self):
         title = self.title_entry.get().strip()
