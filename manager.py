@@ -146,9 +146,11 @@ class Dashboard(ttk.Window):
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
+                # Generate the final .md file for the repo
                 with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as md_file:
                     md_file.write(data['content'])
 
+                # Prepare metadata for the final _index.json
                 metadata = {k: v for k, v in data.items() if k not in ['content', 'image_repo_path']}
                 metadata['image_url'] = f"{raw_content_url}/{data['image_repo_path']}"
                 metadata['excerpt'] = " ".join(data['content'].split()[:25]) + "..."
@@ -181,13 +183,11 @@ class ArticleEditor(ttk.Toplevel):
         self.slug = slug
         self.callback = callback
         
-        # --- UI Setup ---
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         main_frame.columnconfigure(0, weight=1)
         main_frame.rowconfigure(2, weight=1)
 
-        # Metadata Section
         metadata_frame = ttk.Frame(main_frame)
         metadata_frame.grid(row=0, column=0, sticky="ew", pady=(0, 20))
         metadata_frame.columnconfigure(1, weight=1)
@@ -209,7 +209,6 @@ class ArticleEditor(ttk.Toplevel):
         self.image_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
         ttk.Button(image_frame, text="Görsel Seç...", command=self.browse_image, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
         
-        # Dual-Panel Editor
         paned_window = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
         paned_window.grid(row=2, column=0, sticky="nsew")
 
@@ -225,7 +224,6 @@ class ArticleEditor(ttk.Toplevel):
         self.set_preview_style()
         paned_window.add(preview_frame, weight=1)
 
-        # Action Buttons
         button_frame = ttk.Frame(main_frame)
         button_frame.grid(row=3, column=0, sticky="e", pady=(20, 0))
         ttk.Button(button_frame, text="Kaydet", command=self.save_article, bootstyle="success").pack(side=tk.LEFT, padx=10)
@@ -234,10 +232,8 @@ class ArticleEditor(ttk.Toplevel):
         if self.slug: self.load_article_data()
 
     def set_preview_style(self):
-        """Applies the website's CSS to the live preview panel."""
         self.preview_label.set_html("""
-            <html>
-            <head>
+            <html><head>
                 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
                 <style>
                     :root {
@@ -245,37 +241,25 @@ class ArticleEditor(ttk.Toplevel):
                         --accent-matte-gold: #c9a227;
                         --text-main-charcoal: #343a40;
                     }
-                    body {
-                        font-family: 'Lato', sans-serif;
-                        font-size: 18px;
-                        line-height: 1.7;
-                        color: var(--text-main-charcoal);
-                    }
+                    body { font-family: 'Lato', sans-serif; font-size: 18px; line-height: 1.7; color: var(--text-main-charcoal); }
                     h1, h2, h3 { font-family: 'Lora', serif; color: var(--primary-deep-blue); }
-                    h1 { font-size: 2.5rem; }
-                    h2 { font-size: 2rem; }
-                    h3 { font-size: 1.5rem; }
-                    blockquote {
-                        border-left: 4px solid var(--accent-matte-gold);
-                        padding-left: 1rem;
-                        margin-left: 0;
-                        font-style: italic;
-                    }
+                    h1 { font-size: 2.5rem; } h2 { font-size: 2rem; } h3 { font-size: 1.5rem; }
+                    blockquote { border-left: 4px solid var(--accent-matte-gold); padding-left: 1rem; margin-left: 0; font-style: italic; }
                     table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
                     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
                     th { background-color: #f2f2f2; }
+                    .cite-ref { display: none; } /* Hide the custom cite tags */
                 </style>
-            </head>
-            <body>
-                <p>Markdown önizlemesi burada görünecek.</p>
-            </body>
-            </html>
+            </head><body><p>Markdown önizlemesi burada görünecek.</p></body></html>
         """)
 
     def update_preview(self, event=None):
         markdown_text = self.editor_text.get("1.0", tk.END)
-        # Use markdown2 library to convert with extras for tables, etc.
-        html_text = markdown2.markdown(markdown_text, extras=["tables", "fenced-code-blocks", "strike"])
+        # --- FIX: Pre-process the [cite_start] tags ---
+        processed_text = re.sub(r'\[cite_start\]', r'<span class="cite-ref">', markdown_text)
+        processed_text = re.sub(r'\[cite:(\d+)\]', r'</span>', processed_text)
+        
+        html_text = markdown2.markdown(processed_text, extras=["tables", "fenced-code-blocks", "strike", "cuddled-lists"])
         self.preview_label.set_html(html_text)
 
     def load_categories(self):
@@ -329,7 +313,8 @@ class ArticleEditor(ttk.Toplevel):
         self.destroy()
     
     def cancel(self):
-        self.destroy()
+        if messagebox.askyesno("Onay", "Kaydedilmemiş değişiklikler var. Çıkmak istediğinize emin misiniz?"):
+            self.destroy()
 
     def create_slug(self, title):
         s = title.lower()
@@ -338,9 +323,8 @@ class ArticleEditor(ttk.Toplevel):
         s = re.sub(r'[\s_-]+', '-', s).strip('-')
         return s
 
-# --- Category Manager Window (No Changes) ---
+# --- Category Manager Window ---
 class CategoryManager(ttk.Toplevel):
-    # This class remains the same as the previous correct version.
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Kategorileri Yönet")
