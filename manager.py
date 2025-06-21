@@ -1,141 +1,320 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import ttk, messagebox, filedialog
 import json
 import os
-import fitz  # PyMuPDF
 import git
 import datetime
 import re
-import statistics
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
+import pdfplumber
 
 # --- Configuration ---
-REPO_PATH = "."
-INDEX_FILE = os.path.join(REPO_PATH, "_index.json")
+REPO_PATH = "." 
+POSTS_METADATA_DIR = os.path.join(REPO_PATH, "_metadata") 
+CATEGORIES_FILE = os.path.join(REPO_PATH, "_categories.json")
+# These files will be generated during the publish process
+FINAL_MD_DIR = REPO_PATH 
+FINAL_INDEX_FILE = os.path.join(REPO_PATH, "_index.json")
 
-class BlogManager(ttk.Window):
+
+# --- Main Application: Dashboard ---
+class Dashboard(ttk.Window):
     def __init__(self):
-        # Initialize with a custom theme that matches the website
-        super().__init__(themename="litera") 
+        super().__init__(themename="litera")
+        self.title("Website İçerik Yöneticisi")
+        self.geometry("800x600")
 
-        self.title("Avukat Blog İçerik Yöneticisi")
-        self.geometry("900x600")
-
-        # --- Custom Style Configuration ---
+        # --- Style Configuration ---
         self.style.configure('TButton', font=('Lato', 10))
         self.style.configure('TLabel', font=('Lato', 10))
-        self.style.configure('TEntry', font=('Lato', 10))
-        self.style.configure('TFrame')
-        self.style.configure('TLabelframe.Label', font=('Lora', 12, 'bold'))
-        
-        # Define custom button styles based on website palette
-        self.style.configure('primary.TButton', background='#1d3557', foreground='white')
-        self.style.map('primary.TButton', background=[('active', '#344966')])
-        
-        self.style.configure('warning.TButton', background='#c9a227', foreground='white')
-        self.style.map('warning.TButton', background=[('active', '#e0b445')])
-        
-        self.style.configure('success.TButton', background='#4CAF50', foreground='white')
-        self.style.map('success.TButton', background=[('active', '#66BB6A')])
+        self.style.configure('Treeview.Heading', font=('Lora', 11, 'bold'))
+        self.style.configure('primary.TButton', font=('Lato', 11, 'bold'))
 
         # --- Data ---
-        self.posts_data = []
-        try:
-            self.repo = git.Repo(REPO_PATH)
-        except git.exc.InvalidGitRepositoryError:
-            messagebox.showerror("Hata", "Bu dizin bir Git deposu değil. Lütfen doğru klasöre yerleştirdiğinizden emin olun.")
-            self.destroy()
+        os.makedirs(POSTS_METADATA_DIR, exist_ok=True)
+        self.repo = git.Repo(REPO_PATH)
+
+        # --- UI ---
+        main_frame = ttk.Frame(self, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame.columnconfigure(0, weight=3)
+        main_frame.columnconfigure(1, weight=1)
+        main_frame.rowconfigure(0, weight=1)
+
+        # Left Panel: Article List
+        list_frame = ttk.LabelFrame(main_frame, text="Makale Listesi", padding=10)
+        list_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
+        
+        self.tree = ttk.Treeview(list_frame, columns=("title", "category", "status"), show="headings")
+        self.tree.heading("title", text="Makale Başlığı")
+        self.tree.heading("category", text="Kategori")
+        self.tree.heading("status", text="Durum")
+        self.tree.column("category", width=150, anchor=tk.CENTER)
+        self.tree.column("status", width=100, anchor=tk.CENTER)
+        self.tree.pack(fill=tk.BOTH, expand=True)
+        self.tree.bind("<<TreeviewSelect>>", self.on_item_select)
+
+        # Right Panel: Action Buttons
+        actions_frame = ttk.LabelFrame(main_frame, text="İşlemler", padding=20)
+        actions_frame.grid(row=0, column=1, sticky="nsew")
+
+        self.new_button = ttk.Button(actions_frame, text="Yeni Makale Ekle", command=self.open_article_editor, bootstyle="success")
+        self.new_button.pack(pady=10, fill=tk.X)
+
+        self.edit_button = ttk.Button(actions_frame, text="Seçili Makaleyi Düzenle", command=self.open_article_editor_for_edit, state=tk.DISABLED)
+        self.edit_button.pack(pady=10, fill=tk.X)
+        
+        self.delete_button = ttk.Button(actions_frame, text="Seçili Makaleyi Sil", command=self.delete_article, bootstyle="danger", state=tk.DISABLED)
+        self.delete_button.pack(pady=10, fill=tk.X)
+
+        # Bottom Section: Global Actions
+        global_actions_frame = ttk.Frame(self, padding=(20, 10))
+        global_actions_frame.pack(fill=tk.X)
+
+        ttk.Button(global_actions_frame, text="Kategorileri Yönet", command=self.open_category_manager, bootstyle="secondary").pack(side=tk.LEFT)
+        ttk.Button(global_actions_frame, text="DEĞİŞİKLİKLERİ YAYINLA", command=self.publish_changes, bootstyle="primary").pack(side=tk.RIGHT)
+
+        self.refresh_article_list()
+
+    def on_item_select(self, event=None):
+        if self.tree.selection():
+            self.edit_button.config(state=tk.NORMAL)
+            self.delete_button.config(state=tk.NORMAL)
+        else:
+            self.edit_button.config(state=tk.DISABLED)
+            self.delete_button.config(state=tk.DISABLED)
+
+    def refresh_article_list(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+        changed_files = {item.a_path for item in self.repo.index.diff(None)}
+        untracked_files = set(self.repo.untracked_files)
+        local_changes = changed_files.union(untracked_files)
+
+        for filename in os.listdir(POSTS_METADATA_DIR):
+            if filename.endswith(".json"):
+                with open(os.path.join(POSTS_METADATA_DIR, filename), 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                status = "Yayınlandı"
+                if f"_metadata/{filename}" in local_changes or data.get('pdf_path_changed', False):
+                    status = "Taslak"
+
+                self.tree.insert("", tk.END, values=(data["title"], data["category"], status), iid=data["slug"])
+        self.on_item_select()
+
+    def open_article_editor(self):
+        ArticleEditor(self, "Yeni Makale Ekle", None, self.refresh_article_list)
+
+    def open_article_editor_for_edit(self):
+        if not self.tree.selection(): return
+        slug = self.tree.selection()[0]
+        ArticleEditor(self, "Makaleyi Düzenle", slug, self.refresh_article_list)
+
+    def delete_article(self):
+        if not self.tree.selection(): return
+        slug = self.tree.selection()[0]
+        title = self.tree.item(slug, "values")[0]
+
+        if messagebox.askyesno("Onay", f"'{title}' başlıklı makaleyi kalıcı olarak silmek istediğinizden emin misiniz?"):
+            json_path = os.path.join(POSTS_METADATA_DIR, f"{slug}.json")
+            if os.path.exists(json_path): os.remove(json_path)
+            self.refresh_article_list()
+            messagebox.showinfo("Başarılı", f"'{title}' silindi. Değişikliği yansıtmak için yayınlayın.")
+
+    def open_category_manager(self):
+        CategoryManager(self)
+
+    def publish_changes(self):
+        if not messagebox.askyesno("Yayınlama Onayı", "Bu işlem, web sitesini yaptığınız son değişikliklerle güncelleyecektir. Bu, geri alınamaz. Devam etmek istediğinizden emin misiniz?"):
             return
+        
+        all_posts_metadata_for_index = []
+        slugs_to_remove = []
 
-        # --- UI Elements ---
-        self.main_frame = ttk.Frame(self, padding="15")
-        self.main_frame.pack(fill=tk.BOTH, expand=True)
+        # Find which md files to remove
+        all_local_slugs = {f.replace('.json','') for f in os.listdir(POSTS_METADATA_DIR) if f.endswith('.json')}
+        for item in self.repo.head.commit.tree.traverse():
+            if item.path.endswith('.md') and not item.path.startswith('_'):
+                slug = item.path.replace('.md','')
+                if slug not in all_local_slugs:
+                    slugs_to_remove.append(item.path)
 
-        # Left side: Post List
-        list_frame = ttk.LabelFrame(self.main_frame, text="Mevcut Makaleler", padding="10")
-        list_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 15))
+        for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
+            if filename.endswith(".json"):
+                filepath = os.path.join(POSTS_METADATA_DIR, filename)
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
 
-        self.post_listbox = tk.Listbox(list_frame, font=('Lato', 11), borderwidth=0, highlightthickness=0)
-        self.post_listbox.pack(fill=tk.BOTH, expand=True)
-        self.post_listbox.bind("<<ListboxSelect>>", self.on_post_select)
+                # Generate .md file from PDF
+                content = self.parse_pdf_to_markdown(data['pdf_path'])
+                with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as md_file:
+                    md_file.write(content)
 
-        # Right side: Form
-        form_frame = ttk.LabelFrame(self.main_frame, text="Makale Detayları", padding="15")
-        form_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        form_frame.columnconfigure(1, weight=1)
+                # Prepare metadata for final index
+                metadata = {k: v for k, v in data.items() if k not in ['pdf_path', 'pdf_path_changed']}
+                metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
+                all_posts_metadata_for_index.append(metadata)
 
-        # Form fields
-        ttk.Label(form_frame, text="Başlık:").grid(row=0, column=0, sticky="w", pady=5)
-        self.title_entry = ttk.Entry(form_frame, width=40)
+                # Mark as published
+                data['pdf_path_changed'] = False
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+
+        all_posts_metadata_for_index.sort(key=lambda p: datetime.datetime.strptime(p['date'], "%d %B %Y"), reverse=True)
+        with open(FINAL_INDEX_FILE, 'w', encoding='utf-8') as f:
+            json.dump(all_posts_metadata_for_index, f, indent=2, ensure_ascii=False)
+        
+        try:
+            self.repo.git.add(A=True)
+            if slugs_to_remove:
+                self.repo.git.rm(slugs_to_remove)
+
+            if not self.repo.is_dirty(untracked_files=True):
+                messagebox.showinfo("Bilgi", "Yayınlanacak yeni değişiklik bulunmuyor.")
+                return
+            
+            self.repo.index.commit(f"Content update via CMS: {datetime.datetime.now().isoformat()}")
+            self.repo.remote(name='origin').push()
+            self.refresh_article_list()
+            messagebox.showinfo("İşlem Başarılı", "Web sitesi başarıyla güncellendi!")
+        except Exception as e:
+            messagebox.showerror("Hata Oluştu", f"Website güncellenirken bir hata oluştu.\nHata detayı: {e}")
+
+    def parse_pdf_to_markdown(self, pdf_path):
+        markdown_text = ""
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                tables = page.extract_tables()
+                for table_data in tables:
+                    table_data = [row for row in table_data if row is not None]
+                    if not table_data: continue
+                    header = [str(cell).replace('\n', ' ') if cell is not None else '' for cell in table_data[0]]
+                    markdown_text += f"| {' | '.join(header)} |\n"
+                    markdown_text += f"|{'|'.join(['---'] * len(header))}|\n"
+                    for row in table_data[1:]:
+                        cleaned_row = [str(cell).replace('\n', ' ') if cell is not None else '' for cell in row]
+                        markdown_text += f"| {' | '.join(cleaned_row)} |\n"
+                    markdown_text += "\n"
+                
+                page_text = page.extract_text(x_tolerance=1, y_tolerance=3)
+                if page_text:
+                    markdown_text += page_text + "\n\n"
+        
+        markdown_text = re.sub(r'(\n\s*){3,}', '\n\n', markdown_text)
+        lines = markdown_text.split('\n')
+        processed_lines = []
+        for line in lines:
+            words = line.strip().split()
+            if 1 <= len(words) <= 7 and not line.strip().endswith('.'):
+                processed_lines.append(f"## {line.strip()}")
+            else:
+                processed_lines.append(line)
+        
+        return "\n".join(processed_lines)
+
+# --- Article Editor Window ---
+class ArticleEditor(ttk.Toplevel):
+    def __init__(self, parent, title, slug=None, callback=None):
+        super().__init__(parent)
+        self.title(title)
+        self.geometry("600x400")
+        self.parent = parent
+        self.slug = slug
+        self.callback = callback
+        self.pdf_changed = False
+        
+        main_frame = ttk.Frame(self, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(main_frame, text="Makale Başlığı:").grid(row=0, column=0, sticky="w", pady=5)
+        self.title_entry = ttk.Entry(main_frame)
         self.title_entry.grid(row=0, column=1, sticky="ew", pady=5)
 
-        ttk.Label(form_frame, text="Kategori:").grid(row=1, column=0, sticky="w", pady=5)
-        self.category_entry = ttk.Entry(form_frame, width=40)
-        self.category_entry.grid(row=1, column=1, sticky="ew", pady=5)
+        ttk.Label(main_frame, text="Kategori:").grid(row=1, column=0, sticky="w", pady=5)
+        self.category_combobox = ttk.Combobox(main_frame, state="readonly")
+        self.category_combobox.grid(row=1, column=1, sticky="ew", pady=5)
+        self.load_categories()
 
-        ttk.Label(form_frame, text="PDF Dosyası:").grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Label(main_frame, text="Makale Dosyası (PDF):").grid(row=2, column=0, sticky="w", pady=5)
         self.pdf_path_var = tk.StringVar()
-        pdf_frame = ttk.Frame(form_frame)
+        pdf_frame = ttk.Frame(main_frame)
         pdf_frame.grid(row=2, column=1, sticky="ew", pady=5)
-        ttk.Entry(pdf_frame, textvariable=self.pdf_path_var, state="readonly").pack(side=tk.LEFT, expand=True, fill=tk.X)
-        ttk.Button(pdf_frame, text="Gözat...", command=self.browse_pdf, bootstyle=SECONDARY).pack(side=tk.RIGHT, padx=(5,0))
+        self.pdf_entry = ttk.Entry(pdf_frame, textvariable=self.pdf_path_var, state="readonly")
+        self.pdf_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
+        ttk.Button(pdf_frame, text="PDF Dosyası Seç...", command=self.browse_pdf, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
         
-        # Separator and Action Buttons
-        ttk.Separator(form_frame, orient=HORIZONTAL).grid(row=3, columnspan=2, pady=20, sticky="ew")
+        button_frame = ttk.Frame(main_frame)
+        button_frame.grid(row=4, columnspan=2, pady=(20, 0))
+        ttk.Button(button_frame, text="Kaydet", command=self.save_article, bootstyle="success").pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="İptal", command=self.cancel, bootstyle="secondary").pack(side=tk.LEFT)
 
-        action_button_frame = ttk.Frame(form_frame)
-        action_button_frame.grid(row=4, columnspan=2)
-        
-        ttk.Button(action_button_frame, text="Yeni Makale", command=self.create_new, bootstyle=SUCCESS).pack(side=tk.LEFT, padx=5)
-        ttk.Button(action_button_frame, text="Güncelle", command=self.update_post, bootstyle=INFO).pack(side=tk.LEFT, padx=5)
-        ttk.Button(action_button_frame, text="Sil", command=self.delete_post, bootstyle=DANGER).pack(side=tk.LEFT, padx=5)
+        if self.slug:
+            self.load_article_data()
 
-        # Publish Button at the bottom
-        publish_button = ttk.Button(self, text="Tüm Değişiklikleri Web Sitesine Yayınla", command=self.publish_changes, bootstyle="primary")
-        publish_button.pack(fill=tk.X, padx=15, pady=10)
-
-        # Initial Load
-        self.load_posts()
-        self.refresh_listbox()
-
-    # --- Backend Logic (Functions like load_posts, save_posts, etc.) ---
-    def load_posts(self):
+    def load_categories(self):
         try:
-            with open(INDEX_FILE, "r", encoding="utf-8") as f:
-                self.posts_data = json.load(f)
+            with open(CATEGORIES_FILE, 'r', encoding='utf-8') as f:
+                self.category_combobox['values'] = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            self.posts_data = []
-            messagebox.showwarning("Uyarı", "_index.json dosyası bulunamadı veya bozuk. Yeni bir dosya oluşturulacak.")
+            self.category_combobox['values'] = []
 
-    def save_posts(self):
-        # Sort posts by date before saving, most recent first
-        self.posts_data.sort(key=lambda p: datetime.datetime.strptime(p['date'], "%d %B %Y"), reverse=True)
-        with open(INDEX_FILE, "w", encoding="utf-8") as f:
-            json.dump(self.posts_data, f, indent=2, ensure_ascii=False)
-
-    def refresh_listbox(self):
-        self.post_listbox.delete(0, tk.END)
-        for post in self.posts_data:
-            self.post_listbox.insert(tk.END, post["title"])
-
-    def on_post_select(self, event):
-        selection_indices = self.post_listbox.curselection()
-        if not selection_indices: return
-        
-        index = selection_indices[0]
-        post = self.posts_data[index]
-        
-        self.title_entry.delete(0, tk.END)
-        self.title_entry.insert(0, post["title"])
-        self.category_entry.delete(0, tk.END)
-        self.category_entry.insert(0, post["category"])
-        self.pdf_path_var.set("Değiştirmek için yeni PDF seçin")
+    def load_article_data(self):
+        filepath = os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json")
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            self.title_entry.insert(0, data["title"])
+            self.category_combobox.set(data["category"])
+            self.pdf_path_var.set(data.get("pdf_path", "Lütfen PDF seçin"))
+        except FileNotFoundError:
+            messagebox.showerror("Hata", "Makale verisi bulunamadı.")
+            self.destroy()
 
     def browse_pdf(self):
         filepath = filedialog.askopenfilename(title="PDF Dosyası Seç", filetypes=(("PDF Files", "*.pdf"),))
-        if filepath: self.pdf_path_var.set(filepath)
-            
+        if filepath:
+            self.pdf_path_var.set(filepath)
+            self.pdf_changed = True
+
+    def save_article(self):
+        title = self.title_entry.get().strip()
+        category = self.category_combobox.get()
+        pdf_path = self.pdf_path_var.get()
+
+        if not all([title, category, pdf_path]) or "Lütfen" in pdf_path:
+            messagebox.showerror("Hata", "Tüm alanlar doldurulmalıdır.")
+            return
+
+        if self.slug is None: # New article
+            self.slug = self.create_slug(title)
+            if os.path.exists(os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json")):
+                messagebox.showerror("Hata", "Bu başlığa sahip bir makale zaten mevcut.")
+                self.slug = None 
+                return
+        
+        data = {
+            "slug": self.slug,
+            "title": title,
+            "category": category,
+            "date": datetime.datetime.now().strftime("%d %B %Y"),
+            "pdf_path": pdf_path,
+            "pdf_path_changed": self.pdf_changed
+        }
+
+        with open(os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json"), 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+        if self.callback: self.callback()
+        self.destroy()
+    
+    def cancel(self):
+        if messagebox.askyesno("Onay", "Kaydedilmemiş değişiklikler var. Çıkmak istediğinize emin misiniz?"):
+            self.destroy()
+
     def create_slug(self, title):
         s = title.lower()
         s = s.replace('ı', 'i').replace('ö', 'o').replace('ü', 'u').replace('ş', 's').replace('ç', 'c').replace('ğ', 'g')
@@ -143,149 +322,69 @@ class BlogManager(ttk.Window):
         s = re.sub(r'[\s_-]+', '-', s).strip('-')
         return s
 
-    def clear_form(self):
-        self.title_entry.delete(0, tk.END)
-        self.category_entry.delete(0, tk.END)
-        self.pdf_path_var.set("")
-        self.post_listbox.selection_clear(0, tk.END)
+# --- Category Manager Window ---
+class CategoryManager(ttk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Kategorileri Yönet")
+        self.geometry("400x400")
         
-    def create_new(self):
-        self.clear_form()
-        messagebox.showinfo("Bilgi", "Yeni makale için bilgileri girin ve 'Güncelle' butonuna basın, ardından yayınlayın.")
+        self.load_categories()
 
-    # ===== FIX: New intelligent parsing function =====
-    def parse_pdf_to_markdown(self, pdf_path):
-        """
-        Parses a PDF more intelligently, attempting to preserve structure.
-        """
-        doc = fitz.open(pdf_path)
-        markdown_text = ""
-        
-        # First, find the most common font size to identify body text
-        font_sizes = []
-        for page in doc:
-            for block in page.get_text("dict")["blocks"]:
-                if "lines" in block:
-                    for line in block["lines"]:
-                        for span in line["spans"]:
-                            font_sizes.append(span["size"])
-        
-        if not font_sizes:
-            return "" # Empty document
-            
-        # Use the mode (most common value) as the body font size
-        body_font_size = statistics.mode(font_sizes)
+        main_frame = ttk.Frame(self, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Now, process the document block by block
-        for page in doc:
-            blocks = page.get_text("dict", flags=fitz.TEXTFLAGS_SEARCH)["blocks"]
-            for block in blocks:
-                if "lines" in block:
-                    block_text = ""
-                    # Reconstruct the block's text from its spans
-                    for line in block["lines"]:
-                        for span in line["spans"]:
-                            text = span["text"].strip()
-                            if not text: continue
-                            
-                            # Check for bold text
-                            if "bold" in span["font"].lower():
-                                block_text += f"**{text}**"
-                            else:
-                                block_text += text
-                        block_text += " " # Add space between spans
-                    
-                    block_text = block_text.strip()
-                    if not block_text: continue
+        list_frame = ttk.LabelFrame(main_frame, text="Mevcut Kategoriler", padding=10)
+        list_frame.pack(fill=tk.BOTH, expand=True, pady=(0,20))
+        self.cat_listbox = tk.Listbox(list_frame)
+        self.cat_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.delete_button = ttk.Button(list_frame, text="Sil", command=self.delete_category, bootstyle="danger")
+        self.delete_button.pack(side=tk.LEFT, padx=(10,0), anchor="n")
 
-                    # Heuristic to determine structure based on font size
-                    first_span_size = block["lines"][0]["spans"][0]["size"]
-                    
-                    # Check for bullet points (common characters)
-                    if block_text.startswith(('●', '•', '*', '-')):
-                        markdown_text += f"* {block_text[1:].strip()}\n"
-                    # Check for headings (significantly larger font)
-                    elif first_span_size > body_font_size * 1.4:
-                        markdown_text += f"\n## {block_text}\n\n"
-                    elif first_span_size > body_font_size * 1.15:
-                        markdown_text += f"\n### {block_text}\n\n"
-                    # Regular paragraph
-                    else:
-                        markdown_text += f"{block_text}\n\n"
+        add_frame = ttk.LabelFrame(main_frame, text="Yeni Kategori Ekle", padding=10)
+        add_frame.pack(fill=tk.X)
+        self.add_entry = ttk.Entry(add_frame)
+        self.add_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        ttk.Button(add_frame, text="Ekle", command=self.add_category, bootstyle="success").pack(side=tk.LEFT, padx=(10,0))
 
-        doc.close()
-        # Clean up extra newlines
-        return re.sub(r'\n{3,}', '\n\n', markdown_text).strip()
-
-    def update_post(self):
-        title = self.title_entry.get().strip()
-        category = self.category_entry.get().strip()
-        pdf_path = self.pdf_path_var.get()
-        
-        if not title or not category:
-            messagebox.showerror("Hata", "Başlık ve Kategori alanları boş olamaz.")
-            return
-
-        selection_indices = self.post_listbox.curselection()
-        if selection_indices:
-            index = selection_indices[0]
-            self.posts_data[index]["title"] = title
-            self.posts_data[index]["category"] = category
-        else: # Create new post
-            if not pdf_path or not os.path.exists(pdf_path):
-                messagebox.showerror("Hata", "Yeni makale oluşturmak için geçerli bir PDF dosyası seçmelisiniz.")
-                return
-            new_post_data = {"slug": self.create_slug(title), "title": title, "category": category, "date": datetime.datetime.now().strftime("%d %B %Y")}
-            self.posts_data.insert(0, new_post_data)
-            index = 0
-            
-        if pdf_path and os.path.exists(pdf_path):
-            try:
-                # Use the new intelligent parsing function
-                content = self.parse_pdf_to_markdown(pdf_path)
-                
-                with open(os.path.join(REPO_PATH, f"{self.posts_data[index]['slug']}.md"), "w", encoding="utf-8") as f:
-                    f.write(content)
-                self.posts_data[index]["excerpt"] = " ".join(content.split()[:25]) + "..."
-                self.posts_data[index]["image_url"] = "https://placehold.co/600x400/1d3557/f8f7f4?text=Makale"
-            except Exception as e:
-                messagebox.showerror("Hata", f"PDF okunurken hata: {e}")
-                return
-
+        ttk.Button(self, text="Kapat", command=self.destroy, bootstyle="secondary").pack(pady=(10,0))
         self.refresh_listbox()
-        messagebox.showinfo("Başarılı", f"'{title}' kaydedildi. Değişiklikleri web sitesine yansıtmak için yayınlayın.")
-
-    def delete_post(self):
-        selection_indices = self.post_listbox.curselection()
-        if not selection_indices:
-            messagebox.showerror("Hata", "Lütfen silmek için bir makale seçin.")
-            return
-        
-        index = selection_indices[0]
-        if messagebox.askyesno("Onay", f"'{self.posts_data[index]['title']}' başlıklı makaleyi silmek istediğinize emin misiniz?"):
-            slug = self.posts_data[index]["slug"]
-            md_path = os.path.join(REPO_PATH, f"{slug}.md")
-            if os.path.exists(md_path): os.remove(md_path)
-            self.posts_data.pop(index)
-            self.refresh_listbox()
-            self.clear_form()
-            messagebox.showinfo("Başarılı", "Makale silindi. Değişikliği yansıtmak için yayınlayın.")
-
-    def publish_changes(self):
+    
+    def load_categories(self):
         try:
-            self.save_posts()
-            self.repo.git.add(A=True)
-            if not self.repo.is_dirty(untracked_files=True):
-                messagebox.showinfo("Bilgi", "Yayınlanacak yeni değişiklik bulunmuyor.")
-                return
-            commit_message = f"Content update: {datetime.datetime.now().isoformat()}"
-            self.repo.index.commit(commit_message)
-            origin = self.repo.remote(name='origin')
-            origin.push()
-            messagebox.showinfo("Başarılı", "Tüm değişiklikler başarıyla yayınlandı!")
-        except Exception as e:
-            messagebox.showerror("Yayınlama Hatası", f"Hata: {e}\n\nİnternet bağlantınızı ve Git yapılandırmanızı kontrol edin.")
+            with open(CATEGORIES_FILE, 'r', encoding='utf-8') as f:
+                self.categories = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.categories = []
+
+    def save_categories(self):
+        with open(CATEGORIES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(sorted(self.categories), f, indent=2, ensure_ascii=False)
+    
+    def refresh_listbox(self):
+        self.cat_listbox.delete(0, tk.END)
+        for cat in sorted(self.categories):
+            self.cat_listbox.insert(tk.END, cat)
+
+    def add_category(self):
+        new_cat = self.add_entry.get().strip()
+        if new_cat and new_cat not in self.categories:
+            self.categories.append(new_cat)
+            self.save_categories()
+            self.refresh_listbox()
+            self.add_entry.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Uyarı", "Kategori boş olamaz veya zaten mevcut.")
+
+    def delete_category(self):
+        selection = self.cat_listbox.curselection()
+        if not selection: return
+        selected_cat = self.cat_listbox.get(selection[0])
+        if messagebox.askyesno("Onay", f"'{selected_cat}' kategorisini silmek istediğinize emin misiniz? Bu kategorideki makaleler etkilenmez, ancak kategori listesinden kaldırılır."):
+            self.categories.remove(selected_cat)
+            self.save_categories()
+            self.refresh_listbox()
 
 if __name__ == "__main__":
-    app = BlogManager()
+    app = Dashboard()
     app.mainloop()
