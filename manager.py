@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, scrolledtext
 import json
 import os
 import git
@@ -27,25 +27,21 @@ class Dashboard(ttk.Window):
         self.title("Website İçerik Yöneticisi")
         self.geometry("800x600")
 
-        # --- Style Configuration ---
         self.style.configure('TButton', font=('Lato', 10))
         self.style.configure('TLabel', font=('Lato', 10))
         self.style.configure('Treeview.Heading', font=('Lora', 11, 'bold'))
         self.style.configure('primary.TButton', font=('Lato', 11, 'bold'))
 
-        # --- Data ---
         os.makedirs(POSTS_METADATA_DIR, exist_ok=True)
         os.makedirs(IMAGES_DIR, exist_ok=True)
         self.repo = git.Repo(REPO_PATH)
 
-        # --- UI ---
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         main_frame.columnconfigure(0, weight=3)
         main_frame.columnconfigure(1, weight=1)
         main_frame.rowconfigure(0, weight=1)
 
-        # Left Panel: Article List
         list_frame = ttk.LabelFrame(main_frame, text="Makale Listesi", padding=10)
         list_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
         
@@ -58,7 +54,6 @@ class Dashboard(ttk.Window):
         self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self.on_item_select)
 
-        # Right Panel: Action Buttons
         actions_frame = ttk.LabelFrame(main_frame, text="İşlemler", padding=20)
         actions_frame.grid(row=0, column=1, sticky="nsew")
 
@@ -71,7 +66,6 @@ class Dashboard(ttk.Window):
         self.delete_button = ttk.Button(actions_frame, text="Seçili Makaleyi Sil", command=self.delete_article, bootstyle="danger", state=tk.DISABLED)
         self.delete_button.pack(pady=10, fill=tk.X)
 
-        # Bottom Section: Global Actions
         global_actions_frame = ttk.Frame(self, padding=(20, 10))
         global_actions_frame.pack(fill=tk.X)
 
@@ -92,20 +86,23 @@ class Dashboard(ttk.Window):
         for item in self.tree.get_children():
             self.tree.delete(item)
             
-        changed_files = {item.a_path for item in self.repo.index.diff(None)}
-        untracked_files = set(self.repo.untracked_files)
-        local_changes = changed_files.union(untracked_files)
+        try:
+            changed_files = {item.a_path for item in self.repo.index.diff(None)}
+            untracked_files = set(self.repo.untracked_files)
+            local_changes = changed_files.union(untracked_files)
 
-        for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
-            if filename.endswith(".json"):
-                with open(os.path.join(POSTS_METADATA_DIR, filename), 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                status = "Yayınlandı"
-                if f"_metadata/{filename}" in local_changes:
-                    status = "Taslak"
+            for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
+                if filename.endswith(".json"):
+                    with open(os.path.join(POSTS_METADATA_DIR, filename), 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    
+                    status = "Yayınlandı"
+                    if f"_metadata/{filename}" in local_changes:
+                        status = "Taslak"
 
-                self.tree.insert("", tk.END, values=(data["title"], data["category"], status), iid=data["slug"])
+                    self.tree.insert("", tk.END, values=(data["title"], data["category"], status), iid=data["slug"])
+        except Exception as e:
+            messagebox.showerror("Liste Yenileme Hatası", f"Makale listesi yenilenirken bir hata oluştu: {e}")
         self.on_item_select()
 
     def open_article_editor(self):
@@ -151,16 +148,22 @@ class Dashboard(ttk.Window):
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
-                # Copy the final markdown content to the root for publishing
-                shutil.copy(data['md_path'], os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"))
-                
-                # Prepare metadata for the final _index.json
+                try:
+                    with open(data['md_path'], 'r', encoding='utf-8') as md_f:
+                        content = md_f.read()
+                except FileNotFoundError:
+                    messagebox.showerror("Hata", f"'{data['title']}' için Markdown dosyası bulunamadı:\n{data['md_path']}\n\nYayınlama işlemi durduruldu.")
+                    return
+                except Exception as e:
+                    messagebox.showerror("Hata", f"Markdown dosyası okunurken hata:\n{e}")
+                    return
+
+                with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as final_md_file:
+                    final_md_file.write(content)
+
                 metadata = {k: v for k, v in data.items() if k not in ['md_path', 'image_repo_path']}
                 metadata['image_url'] = f"{raw_content_url}/{data['image_repo_path']}"
-                with open(data['md_path'], 'r', encoding='utf-8') as md_f:
-                    content = md_f.read()
-                    metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
-
+                metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
                 all_posts_metadata_for_index.append(metadata)
         
         all_posts_metadata_for_index.sort(key=lambda p: datetime.datetime.strptime(p['date'], "%d %B %Y"), reverse=True)
@@ -190,6 +193,10 @@ class ArticleEditor(ttk.Toplevel):
         self.slug = slug
         self.callback = callback
         
+        # ===== FIX: Make window modal and centered =====
+        self.transient(parent) # Associate with parent
+        self.grab_set()       # Make modal
+
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         main_frame.columnconfigure(1, weight=1)
@@ -211,7 +218,6 @@ class ArticleEditor(ttk.Toplevel):
         self.image_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
         ttk.Button(image_frame, text="Görsel Seç...", command=self.browse_image, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
 
-        # --- Simplified Markdown File Input ---
         ttk.Label(main_frame, text="Makale Dosyası (.md):").grid(row=3, column=0, sticky="w", pady=5)
         self.md_path_var = tk.StringVar()
         md_frame = ttk.Frame(main_frame)
@@ -227,6 +233,24 @@ class ArticleEditor(ttk.Toplevel):
 
         if self.slug:
             self.load_article_data()
+            
+        # Center the window on the parent
+        self.center_window()
+
+    def center_window(self):
+        self.update_idletasks()
+        parent_x = self.parent.winfo_x()
+        parent_y = self.parent.winfo_y()
+        parent_width = self.parent.winfo_width()
+        parent_height = self.parent.winfo_height()
+        
+        my_width = self.winfo_width()
+        my_height = self.winfo_height()
+
+        x = parent_x + (parent_width // 2) - (my_width // 2)
+        y = parent_y + (parent_height // 2) - (my_height // 2)
+        
+        self.geometry(f"+{x}+{y}")
 
     def load_categories(self):
         try:
@@ -294,8 +318,7 @@ class ArticleEditor(ttk.Toplevel):
         self.destroy()
     
     def cancel(self):
-        if messagebox.askyesno("Onay", "Kaydedilmemiş değişiklikler var. Çıkmak istediğinize emin misiniz?"):
-            self.destroy()
+        self.destroy()
 
     def create_slug(self, title):
         s = title.lower()
@@ -311,6 +334,10 @@ class CategoryManager(ttk.Toplevel):
         self.title("Kategorileri Yönet")
         self.geometry("400x400")
         
+        # ===== FIX: Make window modal and centered =====
+        self.transient(parent)
+        self.grab_set()
+
         self.load_categories()
 
         main_frame = ttk.Frame(self, padding=20)
@@ -331,7 +358,20 @@ class CategoryManager(ttk.Toplevel):
 
         ttk.Button(self, text="Kapat", command=self.destroy, bootstyle="secondary").pack(pady=(10,0))
         self.refresh_listbox()
-    
+        self.center_window(parent)
+
+    def center_window(self, parent):
+        self.update_idletasks()
+        parent_x = parent.winfo_x()
+        parent_y = parent.winfo_y()
+        parent_width = parent.winfo_width()
+        parent_height = parent.winfo_height()
+        my_width = self.winfo_width()
+        my_height = self.winfo_height()
+        x = parent_x + (parent_width // 2) - (my_width // 2)
+        y = parent_y + (parent_height // 2) - (my_height // 2)
+        self.geometry(f"+{x}+{y}")
+
     def load_categories(self):
         try:
             with open(CATEGORIES_FILE, 'r', encoding='utf-8') as f:
