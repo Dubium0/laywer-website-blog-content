@@ -8,11 +8,15 @@ import re
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import pdfplumber
+import shutil
 
 # --- Configuration ---
 REPO_PATH = "." 
 POSTS_METADATA_DIR = os.path.join(REPO_PATH, "_metadata") 
 CATEGORIES_FILE = os.path.join(REPO_PATH, "_categories.json")
+# ===== NEW: Dedicated folder for storing images =====
+IMAGES_DIR = os.path.join(REPO_PATH, "_images") 
+
 # These files will be generated during the publish process
 FINAL_MD_DIR = REPO_PATH 
 FINAL_INDEX_FILE = os.path.join(REPO_PATH, "_index.json")
@@ -33,6 +37,7 @@ class Dashboard(ttk.Window):
 
         # --- Data ---
         os.makedirs(POSTS_METADATA_DIR, exist_ok=True)
+        os.makedirs(IMAGES_DIR, exist_ok=True) # Create images directory
         self.repo = git.Repo(REPO_PATH)
 
         # --- UI ---
@@ -95,11 +100,12 @@ class Dashboard(ttk.Window):
 
         for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
             if filename.endswith(".json"):
-                with open(os.path.join(POSTS_METADATA_DIR, filename), 'r', encoding='utf-8') as f:
+                filepath = os.path.join(POSTS_METADATA_DIR, filename)
+                with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 
                 status = "Yayınlandı"
-                if f"_metadata/{filename}" in local_changes or data.get('pdf_path_changed', False):
+                if f"_metadata/{filename}" in local_changes or data.get('content_changed_since_publish', False):
                     status = "Taslak"
 
                 self.tree.insert("", tk.END, values=(data["title"], data["category"], status), iid=data["slug"])
@@ -131,6 +137,21 @@ class Dashboard(ttk.Window):
         if not messagebox.askyesno("Yayınlama Onayı", "Bu işlem, web sitesini yaptığınız son değişikliklerle güncelleyecektir. Bu, geri alınamaz. Devam etmek istediğinizden emin misiniz?"):
             return
         
+        # --- Get GitHub URL for constructing raw paths ---
+        try:
+            remote_url = self.repo.remotes.origin.url
+            if remote_url.endswith('.git'):
+                remote_url = remote_url[:-4]
+            if remote_url.startswith("git@github.com:"):
+                remote_url = remote_url.replace("git@github.com:", "https://github.com/")
+            
+            # e.g., https://github.com/USER/REPO -> https://raw.githubusercontent.com/USER/REPO/main
+            raw_content_url = remote_url.replace("https://github.com/", "https://raw.githubusercontent.com/") + "/main"
+
+        except Exception as e:
+            messagebox.showerror("Hata", f"GitHub repo URL'si alınamadı: {e}")
+            return
+            
         all_posts_metadata_for_index = []
         slugs_to_remove = []
 
@@ -154,11 +175,13 @@ class Dashboard(ttk.Window):
                 with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as md_file:
                     md_file.write(content)
 
-                metadata = {k: v for k, v in data.items() if k not in ['pdf_path', 'pdf_path_changed']}
+                # Prepare metadata for final index, creating the public image URL
+                metadata = {k: v for k, v in data.items() if k not in ['pdf_path', 'content_changed_since_publish']}
+                metadata['image_url'] = f"{raw_content_url}/{data['image_repo_path']}"
                 metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
                 all_posts_metadata_for_index.append(metadata)
 
-                data['pdf_path_changed'] = False
+                data['content_changed_since_publish'] = False
                 with open(filepath, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -219,11 +242,11 @@ class ArticleEditor(ttk.Toplevel):
     def __init__(self, parent, title, slug=None, callback=None):
         super().__init__(parent)
         self.title(title)
-        self.geometry("600x450") # Increased height for new field
+        self.geometry("600x450")
         self.parent = parent
         self.slug = slug
         self.callback = callback
-        self.pdf_changed = False
+        self.content_changed = False
         
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
@@ -238,12 +261,11 @@ class ArticleEditor(ttk.Toplevel):
         self.category_combobox.grid(row=1, column=1, sticky="ew", pady=5)
         self.load_categories()
 
-        # ===== FIX: Added Kapak Görseli (Cover Image) field =====
         ttk.Label(main_frame, text="Kapak Görseli:").grid(row=2, column=0, sticky="w", pady=5)
-        self.image_path_var = tk.StringVar()
+        self.image_repo_path = tk.StringVar()
         image_frame = ttk.Frame(main_frame)
         image_frame.grid(row=2, column=1, sticky="ew", pady=5)
-        self.image_entry = ttk.Entry(image_frame, textvariable=self.image_path_var, state="readonly")
+        self.image_entry = ttk.Entry(image_frame, textvariable=self.image_repo_path, state="readonly")
         self.image_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
         ttk.Button(image_frame, text="Görsel Seç...", command=self.browse_image, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
 
@@ -256,7 +278,7 @@ class ArticleEditor(ttk.Toplevel):
         ttk.Button(pdf_frame, text="PDF Seç...", command=self.browse_pdf, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
         
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=5, columnspan=2, pady=(20, 0)) # Updated row
+        button_frame.grid(row=5, columnspan=2, pady=(20, 0))
         ttk.Button(button_frame, text="Kaydet", command=self.save_article, bootstyle="success").pack(side=tk.LEFT, padx=10)
         ttk.Button(button_frame, text="İptal", command=self.cancel, bootstyle="secondary").pack(side=tk.LEFT)
 
@@ -277,7 +299,7 @@ class ArticleEditor(ttk.Toplevel):
                 data = json.load(f)
             self.title_entry.insert(0, data["title"])
             self.category_combobox.set(data["category"])
-            self.image_path_var.set(data.get("image_url", "Lütfen bir görsel seçin"))
+            self.image_repo_path.set(data.get("image_repo_path", "Lütfen bir görsel seçin"))
             self.pdf_path_var.set(data.get("pdf_path", "Lütfen bir PDF seçin"))
         except FileNotFoundError:
             messagebox.showerror("Hata", "Makale verisi bulunamadı.")
@@ -286,21 +308,27 @@ class ArticleEditor(ttk.Toplevel):
     def browse_image(self):
         filepath = filedialog.askopenfilename(title="Kapak Görseli Seç", filetypes=(("Image Files", "*.jpg *.jpeg *.png"),))
         if filepath:
-            self.image_path_var.set(filepath)
+            # Copy the image to the local repo's image folder
+            filename = os.path.basename(filepath)
+            dest_path = os.path.join(IMAGES_DIR, filename)
+            shutil.copy(filepath, dest_path)
+            # Store the relative path within the repo
+            self.image_repo_path.set(os.path.join("_images", filename).replace("\\", "/"))
+            self.content_changed = True
 
     def browse_pdf(self):
         filepath = filedialog.askopenfilename(title="Makale PDF Dosyası Seç", filetypes=(("PDF Files", "*.pdf"),))
         if filepath:
             self.pdf_path_var.set(filepath)
-            self.pdf_changed = True
+            self.content_changed = True
 
     def save_article(self):
         title = self.title_entry.get().strip()
         category = self.category_combobox.get()
         pdf_path = self.pdf_path_var.get()
-        image_path = self.image_path_var.get()
+        image_repo_path = self.image_repo_path.get()
 
-        if not all([title, category, pdf_path, image_path]) or "Lütfen" in pdf_path or "Lütfen" in image_path:
+        if not all([title, category, pdf_path, image_repo_path]) or "Lütfen" in pdf_path or "Lütfen" in image_repo_path:
             messagebox.showerror("Hata", "Tüm alanlar doldurulmalıdır.")
             return
 
@@ -317,8 +345,8 @@ class ArticleEditor(ttk.Toplevel):
             "category": category,
             "date": datetime.datetime.now().strftime("%d %B %Y"),
             "pdf_path": pdf_path,
-            "image_url": image_path, # FIX: Save the image URL
-            "pdf_path_changed": self.pdf_changed
+            "image_repo_path": image_repo_path,
+            "content_changed_since_publish": self.content_changed
         }
 
         with open(os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json"), 'w', encoding='utf-8') as f:
@@ -328,8 +356,7 @@ class ArticleEditor(ttk.Toplevel):
         self.destroy()
     
     def cancel(self):
-        if messagebox.askyesno("Onay", "Kaydedilmemiş değişiklikler var. Çıkmak istediğinize emin misiniz?"):
-            self.destroy()
+        self.destroy()
 
     def create_slug(self, title):
         s = title.lower()
