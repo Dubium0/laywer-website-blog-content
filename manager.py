@@ -93,7 +93,7 @@ class Dashboard(ttk.Window):
         untracked_files = set(self.repo.untracked_files)
         local_changes = changed_files.union(untracked_files)
 
-        for filename in os.listdir(POSTS_METADATA_DIR):
+        for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
             if filename.endswith(".json"):
                 with open(os.path.join(POSTS_METADATA_DIR, filename), 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -134,13 +134,15 @@ class Dashboard(ttk.Window):
         all_posts_metadata_for_index = []
         slugs_to_remove = []
 
-        # Find which md files to remove
         all_local_slugs = {f.replace('.json','') for f in os.listdir(POSTS_METADATA_DIR) if f.endswith('.json')}
-        for item in self.repo.head.commit.tree.traverse():
-            if item.path.endswith('.md') and not item.path.startswith('_'):
-                slug = item.path.replace('.md','')
-                if slug not in all_local_slugs:
-                    slugs_to_remove.append(item.path)
+        try:
+            for item in self.repo.head.commit.tree.traverse():
+                if item.path.endswith('.md') and not item.path.startswith('_'):
+                    slug = item.path.replace('.md','')
+                    if slug not in all_local_slugs:
+                        slugs_to_remove.append(item.path)
+        except: # Handle case of empty repo
+            pass
 
         for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
             if filename.endswith(".json"):
@@ -148,17 +150,14 @@ class Dashboard(ttk.Window):
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
-                # Generate .md file from PDF
                 content = self.parse_pdf_to_markdown(data['pdf_path'])
                 with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as md_file:
                     md_file.write(content)
 
-                # Prepare metadata for final index
                 metadata = {k: v for k, v in data.items() if k not in ['pdf_path', 'pdf_path_changed']}
                 metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
                 all_posts_metadata_for_index.append(metadata)
 
-                # Mark as published
                 data['pdf_path_changed'] = False
                 with open(filepath, 'w', encoding='utf-8') as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
@@ -220,7 +219,7 @@ class ArticleEditor(ttk.Toplevel):
     def __init__(self, parent, title, slug=None, callback=None):
         super().__init__(parent)
         self.title(title)
-        self.geometry("600x400")
+        self.geometry("600x450") # Increased height for new field
         self.parent = parent
         self.slug = slug
         self.callback = callback
@@ -239,16 +238,25 @@ class ArticleEditor(ttk.Toplevel):
         self.category_combobox.grid(row=1, column=1, sticky="ew", pady=5)
         self.load_categories()
 
-        ttk.Label(main_frame, text="Makale Dosyası (PDF):").grid(row=2, column=0, sticky="w", pady=5)
+        # ===== FIX: Added Kapak Görseli (Cover Image) field =====
+        ttk.Label(main_frame, text="Kapak Görseli:").grid(row=2, column=0, sticky="w", pady=5)
+        self.image_path_var = tk.StringVar()
+        image_frame = ttk.Frame(main_frame)
+        image_frame.grid(row=2, column=1, sticky="ew", pady=5)
+        self.image_entry = ttk.Entry(image_frame, textvariable=self.image_path_var, state="readonly")
+        self.image_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
+        ttk.Button(image_frame, text="Görsel Seç...", command=self.browse_image, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
+
+        ttk.Label(main_frame, text="Makale Dosyası (PDF):").grid(row=3, column=0, sticky="w", pady=5)
         self.pdf_path_var = tk.StringVar()
         pdf_frame = ttk.Frame(main_frame)
-        pdf_frame.grid(row=2, column=1, sticky="ew", pady=5)
+        pdf_frame.grid(row=3, column=1, sticky="ew", pady=5)
         self.pdf_entry = ttk.Entry(pdf_frame, textvariable=self.pdf_path_var, state="readonly")
         self.pdf_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
-        ttk.Button(pdf_frame, text="PDF Dosyası Seç...", command=self.browse_pdf, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
+        ttk.Button(pdf_frame, text="PDF Seç...", command=self.browse_pdf, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
         
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=4, columnspan=2, pady=(20, 0))
+        button_frame.grid(row=5, columnspan=2, pady=(20, 0)) # Updated row
         ttk.Button(button_frame, text="Kaydet", command=self.save_article, bootstyle="success").pack(side=tk.LEFT, padx=10)
         ttk.Button(button_frame, text="İptal", command=self.cancel, bootstyle="secondary").pack(side=tk.LEFT)
 
@@ -269,13 +277,19 @@ class ArticleEditor(ttk.Toplevel):
                 data = json.load(f)
             self.title_entry.insert(0, data["title"])
             self.category_combobox.set(data["category"])
-            self.pdf_path_var.set(data.get("pdf_path", "Lütfen PDF seçin"))
+            self.image_path_var.set(data.get("image_url", "Lütfen bir görsel seçin"))
+            self.pdf_path_var.set(data.get("pdf_path", "Lütfen bir PDF seçin"))
         except FileNotFoundError:
             messagebox.showerror("Hata", "Makale verisi bulunamadı.")
             self.destroy()
 
+    def browse_image(self):
+        filepath = filedialog.askopenfilename(title="Kapak Görseli Seç", filetypes=(("Image Files", "*.jpg *.jpeg *.png"),))
+        if filepath:
+            self.image_path_var.set(filepath)
+
     def browse_pdf(self):
-        filepath = filedialog.askopenfilename(title="PDF Dosyası Seç", filetypes=(("PDF Files", "*.pdf"),))
+        filepath = filedialog.askopenfilename(title="Makale PDF Dosyası Seç", filetypes=(("PDF Files", "*.pdf"),))
         if filepath:
             self.pdf_path_var.set(filepath)
             self.pdf_changed = True
@@ -284,12 +298,13 @@ class ArticleEditor(ttk.Toplevel):
         title = self.title_entry.get().strip()
         category = self.category_combobox.get()
         pdf_path = self.pdf_path_var.get()
+        image_path = self.image_path_var.get()
 
-        if not all([title, category, pdf_path]) or "Lütfen" in pdf_path:
+        if not all([title, category, pdf_path, image_path]) or "Lütfen" in pdf_path or "Lütfen" in image_path:
             messagebox.showerror("Hata", "Tüm alanlar doldurulmalıdır.")
             return
 
-        if self.slug is None: # New article
+        if self.slug is None: 
             self.slug = self.create_slug(title)
             if os.path.exists(os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json")):
                 messagebox.showerror("Hata", "Bu başlığa sahip bir makale zaten mevcut.")
@@ -302,6 +317,7 @@ class ArticleEditor(ttk.Toplevel):
             "category": category,
             "date": datetime.datetime.now().strftime("%d %B %Y"),
             "pdf_path": pdf_path,
+            "image_url": image_path, # FIX: Save the image URL
             "pdf_path_changed": self.pdf_changed
         }
 
