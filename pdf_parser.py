@@ -16,7 +16,11 @@ def parse_pdf_to_markdown(pdf_path):
                 # Use extract_words to get detailed info about each character
                 words = page.extract_words()
                 for word in words:
-                    all_font_sizes.append(word['size'])
+                    # ===== FIX: Safely check for the 'size' key =====
+                    # Use .get() which returns None if the key doesn't exist, preventing a crash.
+                    size = word.get('size')
+                    if size is not None:
+                        all_font_sizes.append(size)
             
             # Determine the most common font size as the body text
             if not all_font_sizes:
@@ -100,4 +104,3 @@ def process_line(line, body_font_size):
 
     # Default to a paragraph
     return f"{line.strip()}\n"
-
