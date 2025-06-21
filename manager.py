@@ -7,14 +7,15 @@ import datetime
 import re
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-import pdfplumber
 import shutil
+
+# --- NEW: Import the advanced parser ---
+from pdf_parser import parse_pdf_to_markdown
 
 # --- Configuration ---
 REPO_PATH = "." 
 POSTS_METADATA_DIR = os.path.join(REPO_PATH, "_metadata") 
 CATEGORIES_FILE = os.path.join(REPO_PATH, "_categories.json")
-# ===== NEW: Dedicated folder for storing images =====
 IMAGES_DIR = os.path.join(REPO_PATH, "_images") 
 
 # These files will be generated during the publish process
@@ -137,17 +138,11 @@ class Dashboard(ttk.Window):
         if not messagebox.askyesno("Yayınlama Onayı", "Bu işlem, web sitesini yaptığınız son değişikliklerle güncelleyecektir. Bu, geri alınamaz. Devam etmek istediğinizden emin misiniz?"):
             return
         
-        # --- Get GitHub URL for constructing raw paths ---
         try:
             remote_url = self.repo.remotes.origin.url
-            if remote_url.endswith('.git'):
-                remote_url = remote_url[:-4]
-            if remote_url.startswith("git@github.com:"):
-                remote_url = remote_url.replace("git@github.com:", "https://github.com/")
-            
-            # e.g., https://github.com/USER/REPO -> https://raw.githubusercontent.com/USER/REPO/main
+            if remote_url.endswith('.git'): remote_url = remote_url[:-4]
+            if remote_url.startswith("git@github.com:"): remote_url = remote_url.replace("git@github.com:", "https://github.com/")
             raw_content_url = remote_url.replace("https://github.com/", "https://raw.githubusercontent.com/") + "/main"
-
         except Exception as e:
             messagebox.showerror("Hata", f"GitHub repo URL'si alınamadı: {e}")
             return
@@ -162,8 +157,7 @@ class Dashboard(ttk.Window):
                     slug = item.path.replace('.md','')
                     if slug not in all_local_slugs:
                         slugs_to_remove.append(item.path)
-        except: # Handle case of empty repo
-            pass
+        except: pass
 
         for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
             if filename.endswith(".json"):
@@ -171,12 +165,16 @@ class Dashboard(ttk.Window):
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
-                content = self.parse_pdf_to_markdown(data['pdf_path'])
+                # Use the new advanced parser
+                content = parse_pdf_to_markdown(data['pdf_path'])
+                if content is None:
+                    messagebox.showerror("Hata", f"'{data['title']}' için PDF parse edilemedi. Lütfen dosyayı kontrol edin.")
+                    continue
+
                 with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as md_file:
                     md_file.write(content)
 
-                # Prepare metadata for final index, creating the public image URL
-                metadata = {k: v for k, v in data.items() if k not in ['pdf_path', 'content_changed_since_publish']}
+                metadata = {k: v for k, v in data.items() if k not in ['pdf_path', 'content_changed_since_publish', 'image_repo_path']}
                 metadata['image_url'] = f"{raw_content_url}/{data['image_repo_path']}"
                 metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
                 all_posts_metadata_for_index.append(metadata)
@@ -191,9 +189,7 @@ class Dashboard(ttk.Window):
         
         try:
             self.repo.git.add(A=True)
-            if slugs_to_remove:
-                self.repo.git.rm(slugs_to_remove)
-
+            if slugs_to_remove: self.repo.git.rm(slugs_to_remove)
             if not self.repo.is_dirty(untracked_files=True):
                 messagebox.showinfo("Bilgi", "Yayınlanacak yeni değişiklik bulunmuyor.")
                 return
@@ -204,38 +200,6 @@ class Dashboard(ttk.Window):
             messagebox.showinfo("İşlem Başarılı", "Web sitesi başarıyla güncellendi!")
         except Exception as e:
             messagebox.showerror("Hata Oluştu", f"Website güncellenirken bir hata oluştu.\nHata detayı: {e}")
-
-    def parse_pdf_to_markdown(self, pdf_path):
-        markdown_text = ""
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                tables = page.extract_tables()
-                for table_data in tables:
-                    table_data = [row for row in table_data if row is not None]
-                    if not table_data: continue
-                    header = [str(cell).replace('\n', ' ') if cell is not None else '' for cell in table_data[0]]
-                    markdown_text += f"| {' | '.join(header)} |\n"
-                    markdown_text += f"|{'|'.join(['---'] * len(header))}|\n"
-                    for row in table_data[1:]:
-                        cleaned_row = [str(cell).replace('\n', ' ') if cell is not None else '' for cell in row]
-                        markdown_text += f"| {' | '.join(cleaned_row)} |\n"
-                    markdown_text += "\n"
-                
-                page_text = page.extract_text(x_tolerance=1, y_tolerance=3)
-                if page_text:
-                    markdown_text += page_text + "\n\n"
-        
-        markdown_text = re.sub(r'(\n\s*){3,}', '\n\n', markdown_text)
-        lines = markdown_text.split('\n')
-        processed_lines = []
-        for line in lines:
-            words = line.strip().split()
-            if 1 <= len(words) <= 7 and not line.strip().endswith('.'):
-                processed_lines.append(f"## {line.strip()}")
-            else:
-                processed_lines.append(line)
-        
-        return "\n".join(processed_lines)
 
 # --- Article Editor Window ---
 class ArticleEditor(ttk.Toplevel):
@@ -308,11 +272,9 @@ class ArticleEditor(ttk.Toplevel):
     def browse_image(self):
         filepath = filedialog.askopenfilename(title="Kapak Görseli Seç", filetypes=(("Image Files", "*.jpg *.jpeg *.png"),))
         if filepath:
-            # Copy the image to the local repo's image folder
             filename = os.path.basename(filepath)
             dest_path = os.path.join(IMAGES_DIR, filename)
             shutil.copy(filepath, dest_path)
-            # Store the relative path within the repo
             self.image_repo_path.set(os.path.join("_images", filename).replace("\\", "/"))
             self.content_changed = True
 
