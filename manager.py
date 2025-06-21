@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, scrolledtext
 import json
 import os
 import git
@@ -8,9 +8,8 @@ import re
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import shutil
-
-# --- NEW: Import the advanced parser ---
-from pdf_parser import parse_pdf_to_markdown
+import markdown2
+from tkhtmlview import HTMLLabel
 
 # --- Configuration ---
 REPO_PATH = "." 
@@ -22,7 +21,6 @@ IMAGES_DIR = os.path.join(REPO_PATH, "_images")
 FINAL_MD_DIR = REPO_PATH 
 FINAL_INDEX_FILE = os.path.join(REPO_PATH, "_index.json")
 
-
 # --- Main Application: Dashboard ---
 class Dashboard(ttk.Window):
     def __init__(self):
@@ -30,25 +28,21 @@ class Dashboard(ttk.Window):
         self.title("Website İçerik Yöneticisi")
         self.geometry("800x600")
 
-        # --- Style Configuration ---
         self.style.configure('TButton', font=('Lato', 10))
         self.style.configure('TLabel', font=('Lato', 10))
         self.style.configure('Treeview.Heading', font=('Lora', 11, 'bold'))
         self.style.configure('primary.TButton', font=('Lato', 11, 'bold'))
 
-        # --- Data ---
         os.makedirs(POSTS_METADATA_DIR, exist_ok=True)
-        os.makedirs(IMAGES_DIR, exist_ok=True) # Create images directory
+        os.makedirs(IMAGES_DIR, exist_ok=True)
         self.repo = git.Repo(REPO_PATH)
 
-        # --- UI ---
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         main_frame.columnconfigure(0, weight=3)
         main_frame.columnconfigure(1, weight=1)
         main_frame.rowconfigure(0, weight=1)
 
-        # Left Panel: Article List
         list_frame = ttk.LabelFrame(main_frame, text="Makale Listesi", padding=10)
         list_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 20))
         
@@ -61,7 +55,6 @@ class Dashboard(ttk.Window):
         self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self.on_item_select)
 
-        # Right Panel: Action Buttons
         actions_frame = ttk.LabelFrame(main_frame, text="İşlemler", padding=20)
         actions_frame.grid(row=0, column=1, sticky="nsew")
 
@@ -74,7 +67,6 @@ class Dashboard(ttk.Window):
         self.delete_button = ttk.Button(actions_frame, text="Seçili Makaleyi Sil", command=self.delete_article, bootstyle="danger", state=tk.DISABLED)
         self.delete_button.pack(pady=10, fill=tk.X)
 
-        # Bottom Section: Global Actions
         global_actions_frame = ttk.Frame(self, padding=(20, 10))
         global_actions_frame.pack(fill=tk.X)
 
@@ -101,19 +93,18 @@ class Dashboard(ttk.Window):
 
         for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
             if filename.endswith(".json"):
-                filepath = os.path.join(POSTS_METADATA_DIR, filename)
-                with open(filepath, 'r', encoding='utf-8') as f:
+                with open(os.path.join(POSTS_METADATA_DIR, filename), 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 
                 status = "Yayınlandı"
-                if f"_metadata/{filename}" in local_changes or data.get('content_changed_since_publish', False):
+                if f"_metadata/{filename}" in local_changes:
                     status = "Taslak"
 
                 self.tree.insert("", tk.END, values=(data["title"], data["category"], status), iid=data["slug"])
         self.on_item_select()
 
     def open_article_editor(self):
-        ArticleEditor(self, "Yeni Makale Ekle", None, self.refresh_article_list)
+        ArticleEditor(self, "Yeni Makale Oluştur", None, self.refresh_article_list)
 
     def open_article_editor_for_edit(self):
         if not self.tree.selection(): return
@@ -148,48 +139,27 @@ class Dashboard(ttk.Window):
             return
             
         all_posts_metadata_for_index = []
-        slugs_to_remove = []
-
-        all_local_slugs = {f.replace('.json','') for f in os.listdir(POSTS_METADATA_DIR) if f.endswith('.json')}
-        try:
-            for item in self.repo.head.commit.tree.traverse():
-                if item.path.endswith('.md') and not item.path.startswith('_'):
-                    slug = item.path.replace('.md','')
-                    if slug not in all_local_slugs:
-                        slugs_to_remove.append(item.path)
-        except: pass
-
+        
         for filename in sorted(os.listdir(POSTS_METADATA_DIR)):
             if filename.endswith(".json"):
                 filepath = os.path.join(POSTS_METADATA_DIR, filename)
                 with open(filepath, 'r', encoding='utf-8') as f:
                     data = json.load(f)
 
-                # Use the new advanced parser
-                content = parse_pdf_to_markdown(data['pdf_path'])
-                if content is None:
-                    messagebox.showerror("Hata", f"'{data['title']}' için PDF parse edilemedi. Lütfen dosyayı kontrol edin.")
-                    continue
-
                 with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as md_file:
-                    md_file.write(content)
+                    md_file.write(data['content'])
 
-                metadata = {k: v for k, v in data.items() if k not in ['pdf_path', 'content_changed_since_publish', 'image_repo_path']}
+                metadata = {k: v for k, v in data.items() if k not in ['content', 'image_repo_path']}
                 metadata['image_url'] = f"{raw_content_url}/{data['image_repo_path']}"
-                metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
+                metadata['excerpt'] = " ".join(data['content'].split()[:25]) + "..."
                 all_posts_metadata_for_index.append(metadata)
-
-                data['content_changed_since_publish'] = False
-                with open(filepath, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, indent=2, ensure_ascii=False)
-
+        
         all_posts_metadata_for_index.sort(key=lambda p: datetime.datetime.strptime(p['date'], "%d %B %Y"), reverse=True)
         with open(FINAL_INDEX_FILE, 'w', encoding='utf-8') as f:
             json.dump(all_posts_metadata_for_index, f, indent=2, ensure_ascii=False)
         
         try:
             self.repo.git.add(A=True)
-            if slugs_to_remove: self.repo.git.rm(slugs_to_remove)
             if not self.repo.is_dirty(untracked_files=True):
                 messagebox.showinfo("Bilgi", "Yayınlanacak yeni değişiklik bulunmuyor.")
                 return
@@ -206,55 +176,113 @@ class ArticleEditor(ttk.Toplevel):
     def __init__(self, parent, title, slug=None, callback=None):
         super().__init__(parent)
         self.title(title)
-        self.geometry("600x450")
+        self.geometry("1200x800")
         self.parent = parent
         self.slug = slug
         self.callback = callback
-        self.content_changed = False
         
+        # --- UI Setup ---
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
-        main_frame.columnconfigure(1, weight=1)
+        main_frame.columnconfigure(0, weight=1)
+        main_frame.rowconfigure(2, weight=1)
 
-        ttk.Label(main_frame, text="Makale Başlığı:").grid(row=0, column=0, sticky="w", pady=5)
-        self.title_entry = ttk.Entry(main_frame)
-        self.title_entry.grid(row=0, column=1, sticky="ew", pady=5)
+        # Metadata Section
+        metadata_frame = ttk.Frame(main_frame)
+        metadata_frame.grid(row=0, column=0, sticky="ew", pady=(0, 20))
+        metadata_frame.columnconfigure(1, weight=1)
 
-        ttk.Label(main_frame, text="Kategori:").grid(row=1, column=0, sticky="w", pady=5)
-        self.category_combobox = ttk.Combobox(main_frame, state="readonly")
-        self.category_combobox.grid(row=1, column=1, sticky="ew", pady=5)
+        ttk.Label(metadata_frame, text="Makale Başlığı:").grid(row=0, column=0, sticky="w", pady=5)
+        self.title_entry = ttk.Entry(metadata_frame)
+        self.title_entry.grid(row=0, column=1, columnspan=2, sticky="ew", pady=5)
+
+        ttk.Label(metadata_frame, text="Kategori:").grid(row=1, column=0, sticky="w", pady=5)
+        self.category_combobox = ttk.Combobox(metadata_frame, state="readonly")
+        self.category_combobox.grid(row=1, column=1, columnspan=2, sticky="ew", pady=5)
         self.load_categories()
 
-        ttk.Label(main_frame, text="Kapak Görseli:").grid(row=2, column=0, sticky="w", pady=5)
+        ttk.Label(metadata_frame, text="Kapak Görseli:").grid(row=2, column=0, sticky="w", pady=5)
         self.image_repo_path = tk.StringVar()
-        image_frame = ttk.Frame(main_frame)
-        image_frame.grid(row=2, column=1, sticky="ew", pady=5)
+        image_frame = ttk.Frame(metadata_frame)
+        image_frame.grid(row=2, column=1, columnspan=2, sticky="ew", pady=5)
         self.image_entry = ttk.Entry(image_frame, textvariable=self.image_repo_path, state="readonly")
         self.image_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
         ttk.Button(image_frame, text="Görsel Seç...", command=self.browse_image, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
-
-        ttk.Label(main_frame, text="Makale Dosyası (PDF):").grid(row=3, column=0, sticky="w", pady=5)
-        self.pdf_path_var = tk.StringVar()
-        pdf_frame = ttk.Frame(main_frame)
-        pdf_frame.grid(row=3, column=1, sticky="ew", pady=5)
-        self.pdf_entry = ttk.Entry(pdf_frame, textvariable=self.pdf_path_var, state="readonly")
-        self.pdf_entry.pack(side=tk.LEFT, expand=True, fill=tk.X)
-        ttk.Button(pdf_frame, text="PDF Seç...", command=self.browse_pdf, bootstyle="secondary").pack(side=tk.RIGHT, padx=(5,0))
         
+        # Dual-Panel Editor
+        paned_window = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
+        paned_window.grid(row=2, column=0, sticky="nsew")
+
+        editor_frame = ttk.Frame(paned_window, padding=5)
+        self.editor_text = scrolledtext.ScrolledText(editor_frame, wrap=tk.WORD, font=("Courier New", 11))
+        self.editor_text.pack(fill=tk.BOTH, expand=True)
+        self.editor_text.bind("<KeyRelease>", self.update_preview)
+        paned_window.add(editor_frame, weight=1)
+        
+        preview_frame = ttk.Frame(paned_window, padding=5)
+        self.preview_label = HTMLLabel(preview_frame, html="<p>Preview</p>")
+        self.preview_label.pack(fill=tk.BOTH, expand=True)
+        self.set_preview_style()
+        paned_window.add(preview_frame, weight=1)
+
+        # Action Buttons
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=5, columnspan=2, pady=(20, 0))
+        button_frame.grid(row=3, column=0, sticky="e", pady=(20, 0))
         ttk.Button(button_frame, text="Kaydet", command=self.save_article, bootstyle="success").pack(side=tk.LEFT, padx=10)
         ttk.Button(button_frame, text="İptal", command=self.cancel, bootstyle="secondary").pack(side=tk.LEFT)
 
-        if self.slug:
-            self.load_article_data()
+        if self.slug: self.load_article_data()
+
+    def set_preview_style(self):
+        """Applies the website's CSS to the live preview panel."""
+        self.preview_label.set_html("""
+            <html>
+            <head>
+                <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+                <style>
+                    :root {
+                        --primary-deep-blue: #1d3557;
+                        --accent-matte-gold: #c9a227;
+                        --text-main-charcoal: #343a40;
+                    }
+                    body {
+                        font-family: 'Lato', sans-serif;
+                        font-size: 18px;
+                        line-height: 1.7;
+                        color: var(--text-main-charcoal);
+                    }
+                    h1, h2, h3 { font-family: 'Lora', serif; color: var(--primary-deep-blue); }
+                    h1 { font-size: 2.5rem; }
+                    h2 { font-size: 2rem; }
+                    h3 { font-size: 1.5rem; }
+                    blockquote {
+                        border-left: 4px solid var(--accent-matte-gold);
+                        padding-left: 1rem;
+                        margin-left: 0;
+                        font-style: italic;
+                    }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; }
+                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                </style>
+            </head>
+            <body>
+                <p>Markdown önizlemesi burada görünecek.</p>
+            </body>
+            </html>
+        """)
+
+    def update_preview(self, event=None):
+        markdown_text = self.editor_text.get("1.0", tk.END)
+        # Use markdown2 library to convert with extras for tables, etc.
+        html_text = markdown2.markdown(markdown_text, extras=["tables", "fenced-code-blocks", "strike"])
+        self.preview_label.set_html(html_text)
 
     def load_categories(self):
         try:
             with open(CATEGORIES_FILE, 'r', encoding='utf-8') as f:
                 self.category_combobox['values'] = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.category_combobox['values'] = []
+        except: self.category_combobox['values'] = []
 
     def load_article_data(self):
         filepath = os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json")
@@ -263,11 +291,10 @@ class ArticleEditor(ttk.Toplevel):
                 data = json.load(f)
             self.title_entry.insert(0, data["title"])
             self.category_combobox.set(data["category"])
-            self.image_repo_path.set(data.get("image_repo_path", "Lütfen bir görsel seçin"))
-            self.pdf_path_var.set(data.get("pdf_path", "Lütfen bir PDF seçin"))
-        except FileNotFoundError:
-            messagebox.showerror("Hata", "Makale verisi bulunamadı.")
-            self.destroy()
+            self.image_repo_path.set(data.get("image_repo_path", ""))
+            self.editor_text.insert("1.0", data.get("content", ""))
+            self.update_preview()
+        except: messagebox.showerror("Hata", "Makale verisi bulunamadı.")
 
     def browse_image(self):
         filepath = filedialog.askopenfilename(title="Kapak Görseli Seç", filetypes=(("Image Files", "*.jpg *.jpeg *.png"),))
@@ -276,41 +303,25 @@ class ArticleEditor(ttk.Toplevel):
             dest_path = os.path.join(IMAGES_DIR, filename)
             shutil.copy(filepath, dest_path)
             self.image_repo_path.set(os.path.join("_images", filename).replace("\\", "/"))
-            self.content_changed = True
-
-    def browse_pdf(self):
-        filepath = filedialog.askopenfilename(title="Makale PDF Dosyası Seç", filetypes=(("PDF Files", "*.pdf"),))
-        if filepath:
-            self.pdf_path_var.set(filepath)
-            self.content_changed = True
 
     def save_article(self):
         title = self.title_entry.get().strip()
         category = self.category_combobox.get()
-        pdf_path = self.pdf_path_var.get()
         image_repo_path = self.image_repo_path.get()
+        content = self.editor_text.get("1.0", tk.END).strip()
 
-        if not all([title, category, pdf_path, image_repo_path]) or "Lütfen" in pdf_path or "Lütfen" in image_repo_path:
+        if not all([title, category, image_repo_path, content]):
             messagebox.showerror("Hata", "Tüm alanlar doldurulmalıdır.")
             return
 
-        if self.slug is None: 
+        if self.slug is None:
             self.slug = self.create_slug(title)
             if os.path.exists(os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json")):
                 messagebox.showerror("Hata", "Bu başlığa sahip bir makale zaten mevcut.")
                 self.slug = None 
                 return
         
-        data = {
-            "slug": self.slug,
-            "title": title,
-            "category": category,
-            "date": datetime.datetime.now().strftime("%d %B %Y"),
-            "pdf_path": pdf_path,
-            "image_repo_path": image_repo_path,
-            "content_changed_since_publish": self.content_changed
-        }
-
+        data = { "slug": self.slug, "title": title, "category": category, "date": datetime.datetime.now().strftime("%d %B %Y"), "image_repo_path": image_repo_path, "content": content }
         with open(os.path.join(POSTS_METADATA_DIR, f"{self.slug}.json"), 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -327,8 +338,9 @@ class ArticleEditor(ttk.Toplevel):
         s = re.sub(r'[\s_-]+', '-', s).strip('-')
         return s
 
-# --- Category Manager Window ---
+# --- Category Manager Window (No Changes) ---
 class CategoryManager(ttk.Toplevel):
+    # This class remains the same as the previous correct version.
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Kategorileri Yönet")
