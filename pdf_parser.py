@@ -1,6 +1,7 @@
 # pdf_parser.py
 import pdfplumber
 import re
+import statistics
 
 def parse_pdf_to_markdown(pdf_path):
     """
@@ -10,55 +11,93 @@ def parse_pdf_to_markdown(pdf_path):
     markdown_text = ""
     try:
         with pdfplumber.open(pdf_path) as pdf:
-            for page_num, page in enumerate(pdf.pages):
-                # --- Table Extraction ---
+            all_font_sizes = []
+            for page in pdf.pages:
+                # Use extract_words to get detailed info about each character
+                words = page.extract_words()
+                for word in words:
+                    all_font_sizes.append(word['size'])
+            
+            # Determine the most common font size as the body text
+            if not all_font_sizes:
+                body_font_size = 10 # Default fallback
+            else:
+                body_font_size = statistics.mode(all_font_sizes)
+
+            for page in pdf.pages:
+                # --- 1. Extract and Remove Tables ---
+                table_texts = []
                 tables = page.extract_tables()
                 for table_data in tables:
                     table_data = [row for row in table_data if row is not None]
-                    if not table_data:
-                        continue
+                    if not table_data: continue
                     
+                    # Store the text of each cell to exclude it from regular text extraction
+                    for row in table_data:
+                        for cell in row:
+                            if cell: table_texts.extend(cell.split())
+
+                    # Format table into Markdown
                     header = [str(cell).replace('\n', ' ') if cell is not None else '' for cell in table_data[0]]
                     markdown_text += f"| {' | '.join(header)} |\n"
                     markdown_text += f"|{'|'.join(['---'] * len(header))}|\n"
-                    
                     for row in table_data[1:]:
                         cleaned_row = [str(cell).replace('\n', ' ') if cell is not None else '' for cell in row]
                         markdown_text += f"| {' | '.join(cleaned_row)} |\n"
                     markdown_text += "\n"
 
-                # --- Text Extraction ---
-                # Extract text while trying to preserve layout for paragraph detection
-                page_text = page.extract_text(x_tolerance=1, y_tolerance=3)
-                if page_text:
-                    markdown_text += page_text + "\n\n"
+                # --- 2. Extract Structured Text ---
+                # Re-extract words and filter out those that were part of tables
+                words = page.extract_words(x_tolerance=1.5, y_tolerance=3, use_text_flow=True)
+                
+                # A very rough way to filter table text. More robust would be to use bounding boxes.
+                words = [w for w in words if w['text'] not in table_texts]
+
+                current_y = -1
+                current_line = ""
+                
+                for word in words:
+                    if word['top'] != current_y and current_y != -1:
+                        # New line detected, process the previous line
+                        processed_line = process_line(current_line.strip(), body_font_size)
+                        markdown_text += processed_line
+                        current_line = ""
+                    
+                    current_line += word['text'] + " "
+                    current_y = word['top']
+                
+                # Process the last line on the page
+                processed_line = process_line(current_line.strip(), body_font_size)
+                markdown_text += processed_line + "\n"
 
     except Exception as e:
         print(f"Error processing PDF: {e}")
         return None
 
-    # --- Post-processing and Cleanup ---
-    # Collapse excess newlines to a maximum of two
-    markdown_text = re.sub(r'(\n\s*){3,}', '\n\n', markdown_text.strip())
-    
-    # Simple heuristic for headings (lines with few words, no period, and often sentence case)
-    lines = markdown_text.split('\n')
-    processed_lines = []
-    for line in lines:
-        stripped_line = line.strip()
-        words = stripped_line.split()
-        
-        # Conditions for a line to be considered a heading
-        is_short = 1 <= len(words) <= 8
-        no_period = not stripped_line.endswith('.')
-        is_title_case = stripped_line == stripped_line.title() or stripped_line == stripped_line.upper()
+    # Final cleanup
+    markdown_text = re.sub(r'\n{3,}', '\n\n', markdown_text.strip())
+    return markdown_text
 
-        if is_short and no_period and is_title_case:
-            processed_lines.append(f"## {stripped_line}")
-        else:
-            processed_lines.append(line)
-            
-    # Re-join and clean up again
-    final_text = "\n".join(processed_lines)
-    return re.sub(r'\n{3,}', '\n\n', final_text).strip()
+def process_line(line, body_font_size):
+    """Helper function to format a single line of text into Markdown."""
+    if not line:
+        return ""
+
+    # Simple heuristics for formatting
+    # Note: This requires a PDF with good metadata. A more robust solution
+    # would analyze font names and sizes from the word objects themselves.
+    
+    # List item detection
+    if line.strip().startswith(('●', '•', '*', '-')):
+        return f"* {line.strip()[1:].strip()}\n"
+    if re.match(r'^\d+\.\s', line.strip()):
+        return f"{line.strip()}\n"
+    
+    # Simple heading detection based on common patterns (can be improved)
+    words = line.strip().split()
+    if 1 <= len(words) <= 8 and not line.strip().endswith('.') and (line.strip() == line.strip().title() or line.strip() == line.strip().upper()):
+         return f"\n## {line.strip()}\n\n"
+
+    # Default to a paragraph
+    return f"{line.strip()}\n"
 
