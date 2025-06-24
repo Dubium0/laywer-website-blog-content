@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog, scrolledtext
+from tkinter import ttk, messagebox, filedialog
 import json
 import os
 import git
@@ -161,9 +161,14 @@ class Dashboard(ttk.Window):
                 with open(os.path.join(FINAL_MD_DIR, f"{data['slug']}.md"), 'w', encoding='utf-8') as final_md_file:
                     final_md_file.write(content)
 
+                # ===== FIX: Clean the content before creating the excerpt =====
+                plain_content = re.sub(r'#+\s*', '', content) # Remove headings
+                plain_content = re.sub(r'[\*_`]', '', plain_content) # Remove bold/italic/code
+                plain_content = re.sub(r'\[.*?\]\(.*?\)', '', plain_content) # Remove links
+
                 metadata = {k: v for k, v in data.items() if k not in ['md_path', 'image_repo_path']}
                 metadata['image_url'] = f"{raw_content_url}/{data['image_repo_path']}"
-                metadata['excerpt'] = " ".join(content.split()[:25]) + "..."
+                metadata['excerpt'] = " ".join(plain_content.split()[:25]) + "..."
                 all_posts_metadata_for_index.append(metadata)
         
         all_posts_metadata_for_index.sort(key=lambda p: datetime.datetime.strptime(p['date'], "%d %B %Y"), reverse=True)
@@ -193,10 +198,6 @@ class ArticleEditor(ttk.Toplevel):
         self.slug = slug
         self.callback = callback
         
-        # ===== FIX: Make window modal and centered =====
-        self.transient(parent) # Associate with parent
-        self.grab_set()       # Make modal
-
         main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         main_frame.columnconfigure(1, weight=1)
@@ -233,24 +234,6 @@ class ArticleEditor(ttk.Toplevel):
 
         if self.slug:
             self.load_article_data()
-            
-        # Center the window on the parent
-        self.center_window()
-
-    def center_window(self):
-        self.update_idletasks()
-        parent_x = self.parent.winfo_x()
-        parent_y = self.parent.winfo_y()
-        parent_width = self.parent.winfo_width()
-        parent_height = self.parent.winfo_height()
-        
-        my_width = self.winfo_width()
-        my_height = self.winfo_height()
-
-        x = parent_x + (parent_width // 2) - (my_width // 2)
-        y = parent_y + (parent_height // 2) - (my_height // 2)
-        
-        self.geometry(f"+{x}+{y}")
 
     def load_categories(self):
         try:
@@ -318,7 +301,8 @@ class ArticleEditor(ttk.Toplevel):
         self.destroy()
     
     def cancel(self):
-        self.destroy()
+        if messagebox.askyesno("Onay", "Kaydedilmemiş değişiklikler var. Çıkmak istediğinize emin misiniz?"):
+            self.destroy()
 
     def create_slug(self, title):
         s = title.lower()
@@ -334,10 +318,6 @@ class CategoryManager(ttk.Toplevel):
         self.title("Kategorileri Yönet")
         self.geometry("400x400")
         
-        # ===== FIX: Make window modal and centered =====
-        self.transient(parent)
-        self.grab_set()
-
         self.load_categories()
 
         main_frame = ttk.Frame(self, padding=20)
@@ -358,20 +338,7 @@ class CategoryManager(ttk.Toplevel):
 
         ttk.Button(self, text="Kapat", command=self.destroy, bootstyle="secondary").pack(pady=(10,0))
         self.refresh_listbox()
-        self.center_window(parent)
-
-    def center_window(self, parent):
-        self.update_idletasks()
-        parent_x = parent.winfo_x()
-        parent_y = parent.winfo_y()
-        parent_width = parent.winfo_width()
-        parent_height = parent.winfo_height()
-        my_width = self.winfo_width()
-        my_height = self.winfo_height()
-        x = parent_x + (parent_width // 2) - (my_width // 2)
-        y = parent_y + (parent_height // 2) - (my_height // 2)
-        self.geometry(f"+{x}+{y}")
-
+    
     def load_categories(self):
         try:
             with open(CATEGORIES_FILE, 'r', encoding='utf-8') as f:
