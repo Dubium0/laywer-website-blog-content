@@ -27,7 +27,7 @@
 
 ## **Tenkise Tabi Tasarruflar: Hangi İşlemler İptal Edilebilir?**
 
-# Tenkis davasına konu olabilecek tasarruflar, mirasbırakanın saklı paylı mirasçıların haklarını ihlal etmesi halinde gündeme gelir. Bu tasarruflar iki ana başlık altında incelenmektedir:
+Tenkis davasına konu olabilecek tasarruflar, mirasbırakanın saklı paylı mirasçıların haklarını ihlal etmesi halinde gündeme gelir. Bu tasarruflar iki ana başlık altında incelenmektedir:
 
 # Ölüme Bağlı Tasarruflar: Mirasbırakanın ölümüyle birlikte hukuki sonuç doğuran vasiyetnameler ve miras sözleşmeleri, tenkis davasının başlıca konusunu oluşturur. Mirasbırakanın bu tür tasarruflarla saklı payları ihlal etmesi durumunda, ihlal edilen oran kadar tenkise tabi tutulabilirler. Örneğin, mirasbırakanın tüm malvarlığını tek bir kişiye vasiyet etmesi, saklı paylı mirasçıların haklarını ihlal edebilir ve bu durumda tenkis davasıyla vasiyetnamenin ilgili kısmı indirilir.
 
