@@ -48,28 +48,20 @@ Kira sözleşmesi hazırlanırken veya incelenirken bazı özel hususlara dikkat
 * **Kira Süresi:** Kira sözleşmeleri belirli veya belirsiz süreli olabilir. Belirli süreli sözleşmelerin süresi dolduğunda, kiracı taşınmazı kullanmaya devam eder ve kiraya veren buna itiraz etmezse, sözleşme kendiliğinden belirsiz süreli hale gelir. Bu durum, kiracının sözleşme süresinin sona ermesiyle otomatik olarak tahliye edilemeyeceği anlamına gelir ve kiracının korunmasına yönelik önemli bir hükümdür.  
 * **Depozito (Güvence Bedeli):** Kiraya veren, kiracıdan güvence bedeli (depozito) talep edebilir. Ancak konut ve çatılı işyeri kiralarında bu miktar, üç aylık kira bedelini aşamaz. Depozitonun iadesiyle ilgili koşulların sözleşmede açıkça belirtilmesi, gelecekteki anlaşmazlıkları önlemek için önemlidir. Bu sınırlama ve iade koşullarına ilişkin düzenlemeler, kiracının mağduriyetini engellemeyi amaçlar.
 
-# **Yan Giderler:** Elektrik, su, doğal gaz, çevre temizlik vergisi, kapıcı ücreti, kalorifer yakıtı, asansör bakımı gibi yan giderlerin kim tarafından ödeneceği sözleşmede net bir şekilde belirtilmelidir. TBK'nın genel hükümlerine göre bazı yan giderler kiraya verene ait olsa da (TBK 303), uygulamada bu giderlerin kiracı tarafından ödenmesi yaygın bir sözleşme hükmüdür.
+**Yan Giderler:** Elektrik, su, doğal gaz, çevre temizlik vergisi, kapıcı ücreti, kalorifer yakıtı, asansör bakımı gibi yan giderlerin kim tarafından ödeneceği sözleşmede net bir şekilde belirtilmelidir. TBK'nın genel hükümlerine göre bazı yan giderler kiraya verene ait olsa da (TBK 303), uygulamada bu giderlerin kiracı tarafından ödenmesi yaygın bir sözleşme hükmüdür.
 
 * **Onarım ve Tadilat:** Kiralananda yapılması gereken onarımların sorumluluğu genellikle kiraya verene aittir. Ancak, sözleşmede küçük onarımların veya olağan kullanımdan kaynaklanan bakımların kiracı tarafından yapılacağı kararlaştırılabilir. Kiracının, kiralananda kiraya verenin yazılı izni olmaksızın değişiklik yapmaması esastır; aksi takdirde doğacak zarardan sorumlu olur.  
 * **Alt Kira:** Kiracı, kiraya verenin yazılı izni olmaksızın kiralananı kısmen veya tamamen üçüncü kişilere kiralayamaz, alt kiraya veremez veya devredemez. Alt kiraya izin verilmişse, alt kira sözleşmesinin ana kira sözleşmesine uygun olması ve kiracının alt kiracının davranışlarından kiraya verene karşı sorumlu olması gerekmektedir.
 
 Bu hususların yazılı bir sözleşmede detaylıca düzenlenmesi, taraflar arasındaki ilişkinin şeffaflığını artırır ve olası hukuki anlaşmazlıkların önüne geçer.
 
-# 
+3\. Tarafların Hak ve Yükümlülükleri
 
-# **3\. Tarafların Hak ve Yükümlülükleri**
+Kira sözleşmesi, tam iki tarafa borç yükleyen bir sözleşme olması sebebiyle, hem kiraya verene hem de kiracıya karşılıklı ve birbirini tamamlayan yükümlülükler getirmektedir.
 
-# 
+Kiraya Verenin Yükümlülükleri
 
-# Kira sözleşmesi, tam iki tarafa borç yükleyen bir sözleşme olması sebebiyle, hem kiraya verene hem de kiracıya karşılıklı ve birbirini tamamlayan yükümlülükler getirmektedir.
-
-# 
-
-# **Kiraya Verenin Yükümlülükleri**
-
-# 
-
-# Kiraya verenin kira sözleşmesinden doğan başlıca yükümlülükleri şunlardır:
+Kiraya verenin kira sözleşmesinden doğan başlıca yükümlülükleri şunlardır:
 
 * **Kiralananı Teslim ve Kullanıma Elverişli Halde Bulundurma Borcu (Ayıptan Sorumluluk):**  
   Kiraya veren, kiralananı kiracının kullanımına hazır bulundurmakla yükümlüdür; kanunen belirli bir teslim şekli öngörülmemiştir. Ancak kiraya verenin en önemli asli borçlarından biri, Türk Borçlar Kanunu'nun 301\. maddesi uyarınca kiralananı sözleşmede amaçlanan kullanıma elverişli bir durumda teslim etmek ve sözleşme süresince bu halde bulundurmaktır. Bu yükümlülük, kiralananın teslim anında ayıplı olması durumunda olduğu gibi, sözleşme süresince ortaya çıkan ayıplardan da sorumluluğu kapsar.  
@@ -79,9 +71,7 @@ Bu hususların yazılı bir sözleşmede detaylıca düzenlenmesi, taraflar aras
 
 **Kiracının Yükümlülükleri**
 
-# 
-
-# Kiracının kira sözleşmesinden doğan başlıca yükümlülükleri şunlardır:
+Kiracının kira sözleşmesinden doğan başlıca yükümlülükleri şunlardır:
 
 * **Kira Bedelini Ödeme Borcu:**  
   Kira bedelinin ödenmesi, kiracının asli ve en temel yükümlülüğüdür. Kira bedeli, kural olarak para borcu niteliğindedir ve Türk Borçlar Kanunu'nun 89\. maddesi uyarınca "götürülecek borçlardan" sayılır. Bu, kira bedelinin alacaklının (kiraya verenin) ödeme zamanındaki yerleşim yerinde ödenmesi gerektiği anlamına gelir.  
@@ -96,141 +86,73 @@ Bu hususların yazılı bir sözleşmede detaylıca düzenlenmesi, taraflar aras
 
 **4\. Kira Bedelinin Belirlenmesi, Artırılması ve Ödenmesi**
 
-# 
+Kira bedeli, kira sözleşmesinin en temel unsurlarından biri olup, belirlenmesi, artırılması ve ödenmesi Türk Borçlar Kanunu'nda ve Yargıtay içtihatlarında detaylıca düzenlenmiştir. Bu düzenlemeler, sözleşme özgürlüğü ile kiracının korunması prensipleri arasında bir denge kurmayı amaçlar.
 
-# Kira bedeli, kira sözleşmesinin en temel unsurlarından biri olup, belirlenmesi, artırılması ve ödenmesi Türk Borçlar Kanunu'nda ve Yargıtay içtihatlarında detaylıca düzenlenmiştir. Bu düzenlemeler, sözleşme özgürlüğü ile kiracının korunması prensipleri arasında bir denge kurmayı amaçlar.
+Kira Bedelinin Serbestçe Belirlenmesi ve Yasal Sınırlamalar
 
-# 
+Kira sözleşmesinin başlangıcında, taraflar kira bedelini kural olarak serbestçe belirleyebilirler. Bu, sözleşme özgürlüğü ilkesinin bir yansımasıdır. Ancak, bu serbestlik sonraki kira dönemlerinde uygulanacak kira bedellerinin artırılması konusunda sınırlamalara tabi tutulmuştur. Türk hukukunda kiraya verene kira bedelini tek taraflı olarak artırma hakkı tanınmamıştır; kira artışı tarafların anlaşmasına veya mahkeme kararına bağlıdır.
 
-# **Kira Bedelinin Serbestçe Belirlenmesi ve Yasal Sınırlamalar**
+Kira Artış Oranları (TÜFE ve %25 Sınırı)
 
-# 
+Taraflar arasında kira artış oranına ilişkin bir anlaşma varsa, bu oran kural olarak geçerlidir. Ancak, yenilenen kira dönemlerinde uygulanacak kira bedeline ilişkin anlaşmalar, bir önceki kira yılında Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan Tüketici Fiyat Endeksi'ndeki (TÜFE) on iki aylık ortalamalara göre değişim oranını aşamaz (TBK Madde 344/1). Eğer kararlaştırılan oran TÜFE on iki aylık ortalamasını aşarsa, anlaşma aşan kısım için geçersiz olur ve kira artış oranı olarak TÜFE on iki aylık ortalaması uygulanır. Bu durum, kira bedelinin piyasa koşullarına göre belirlenmesi serbestisini, ekonomik dalgalanmalar karşısında kiracının mağduriyetini önlemek amacıyla sınırlandırmaktadır.
 
-# Kira sözleşmesinin başlangıcında, taraflar kira bedelini kural olarak serbestçe belirleyebilirler. Bu, sözleşme özgürlüğü ilkesinin bir yansımasıdır. Ancak, bu serbestlik sonraki kira dönemlerinde uygulanacak kira bedellerinin artırılması konusunda sınırlamalara tabi tutulmuştur. Türk hukukunda kiraya verene kira bedelini tek taraflı olarak artırma hakkı tanınmamıştır; kira artışı tarafların anlaşmasına veya mahkeme kararına bağlıdır.
+**%25 Sınırı (Geçici Düzenleme):** 11 Haziran 2022 ile 1 Temmuz 2024 tarihleri arasında yenilenen konut kira sözleşmeleri için özel bir geçici düzenleme getirilmiştir. Bu dönemde, kira artış oranı bir önceki kira yılının kira bedelinin %25'ini geçememiştir. Bu sınırlama, sadece konut kiraları için geçerli olup, çatılı işyeri kiraları için TBK Madde 344/1'deki TÜFE sınırlaması uygulanmaya devam etmiştir. Bu geçici düzenleme, yüksek enflasyon dönemlerinde kiracıları aşırı kira artışlarından koruma amacı taşımıştır.
 
-# 
+**1 Temmuz 2024 Sonrası Durum:** %25 kira artışı sınırlaması 2 Temmuz 2024 tarihi itibarıyla sona ermiştir. Bu tarihten sonra, kira artış oranı konusunda ana düzenleme olan TBK Madde 344/1 uygulanmaya devam edecektir. Yani, tarafların anlaşmaları, bir önceki kira yılında TÜFE'deki on iki aylık ortalamalara göre değişim oranını aşmamak koşuluyla geçerli olacaktır. Bu, yasal düzenlemelerin ekonomik koşullara göre dinamik bir şekilde değişebileceğini ve tarafların güncel mevzuatı takip etmeleri gerektiğini göstermektedir.
 
-# **Kira Artış Oranları (TÜFE ve %25 Sınırı)**
+Taraflar arasında kira artış oranı belirlenmemişse, kira bedeli, bir önceki kira yılında TÜFE'deki on iki aylık ortalamalara göre değişim oranını aşmamak kaydıyla, hâkim tarafından kiralananın durumu ve bölgedeki emsal değerler göz önünde bulundurularak hakkaniyete uygun bir şekilde belirlenir (TBK Madde 344/2).
 
-# 
+5 Yıl ve Üzeri Kira Sözleşmelerinde Kira Bedelinin Tespiti (Hakkaniyet İndirimi)
 
-# Taraflar arasında kira artış oranına ilişkin bir anlaşma varsa, bu oran kural olarak geçerlidir. Ancak, yenilenen kira dönemlerinde uygulanacak kira bedeline ilişkin anlaşmalar, bir önceki kira yılında Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan Tüketici Fiyat Endeksi'ndeki (TÜFE) on iki aylık ortalamalara göre değişim oranını aşamaz (TBK Madde 344/1). Eğer kararlaştırılan oran TÜFE on iki aylık ortalamasını aşarsa, anlaşma aşan kısım için geçersiz olur ve kira artış oranı olarak TÜFE on iki aylık ortalaması uygulanır. Bu durum, kira bedelinin piyasa koşullarına göre belirlenmesi serbestisini, ekonomik dalgalanmalar karşısında kiracının mağduriyetini önlemek amacıyla sınırlandırmaktadır.
+Taraflar arasında kira artış oranı konusunda bir anlaşma olup olmadığına bakılmaksızın, beş yıldan uzun süreli veya beş yıldan sonra yenilenen kira sözleşmelerinde ve bundan sonraki her beş yılın sonunda, yeni kira yılında uygulanacak kira bedeli hâkim tarafından belirlenir (TBK Madde 344/3). Bu belirleme yapılırken TÜFE'deki on iki aylık ortalamalara göre değişim oranı, kiralananın durumu ve emsal kira bedelleri dikkate alınarak hakkaniyete uygun bir karar verilir. Bu tür durumlarda, geçici %25 kira artışı sınırlaması uygulanmaz.
 
-# 
+**Hakkaniyet İndirimi:** Yargıtay içtihatları, bu tür kira tespit davalarında kiracı lehine %5 ila %20 oranında bir hakkaniyet indirimi yapılmasını zorunlu kılmaktadır. Bu indirim, bilirkişilerce tespit edilen aylık kira bedeli üzerinden uygulanmalıdır. Hakkaniyet indirimi, kiracının uzun süreli kiracılık ilişkisi nedeniyle kazandığı "iyi niyet" veya yerleşiklik durumunu gözeten, hukuki bir dengeleme mekanizmasıdır. Bu, kiraya verenin piyasa rayiçlerine göre kira bedelini belirlemesinin önünde bir engel teşkil etmese de, eski kiracının bu durumdan tamamen olumsuz etkilenmemesini sağlamayı amaçlar. Mahkemece bu indirimin uygulanmaması, kararın üst mahkeme tarafından bozulması sebebidir.
 
-# **%25 Sınırı (Geçici Düzenleme):** 11 Haziran 2022 ile 1 Temmuz 2024 tarihleri arasında yenilenen konut kira sözleşmeleri için özel bir geçici düzenleme getirilmiştir. Bu dönemde, kira artış oranı bir önceki kira yılının kira bedelinin %25'ini geçememiştir. Bu sınırlama, sadece konut kiraları için geçerli olup, çatılı işyeri kiraları için TBK Madde 344/1'deki TÜFE sınırlaması uygulanmaya devam etmiştir. Bu geçici düzenleme, yüksek enflasyon dönemlerinde kiracıları aşırı kira artışlarından koruma amacı taşımıştır.
+Kira tespit davası, yalnızca konut ve çatılı işyeri kiralarından doğan uyuşmazlıklarda açılabilir. Davayı açan tarafın hukuki yararı bulunmalıdır. 1 Eylül 2023 tarihinden itibaren, kira tespit davaları da dahil olmak üzere birçok kira uyuşmazlığında arabuluculuk yolu zorunlu bir dava şartı haline gelmiştir. Arabuluculuk başvurusu, dava açma süresini durdurur.
 
-# 
+Kira tespit davaları, kısmi veya belirsiz alacak davası olarak açılamaz ve dava dilekçesinde belirtilen kira bedeli, yargılama sırasında "ıslah" yoluyla artırılamaz. Yargıtay Hukuk Genel Kurulu kararları bu konuda kesinlik arz etmektedir. Kira tespitine ilişkin mahkeme kararları, kesinleşmeden icraya konulamaz.
 
-# **1 Temmuz 2024 Sonrası Durum:** %25 kira artışı sınırlaması 2 Temmuz 2024 tarihi itibarıyla sona ermiştir. Bu tarihten sonra, kira artış oranı konusunda ana düzenleme olan TBK Madde 344/1 uygulanmaya devam edecektir. Yani, tarafların anlaşmaları, bir önceki kira yılında TÜFE'deki on iki aylık ortalamalara göre değişim oranını aşmamak koşuluyla geçerli olacaktır. Bu, yasal düzenlemelerin ekonomik koşullara göre dinamik bir şekilde değişebileceğini ve tarafların güncel mevzuatı takip etmeleri gerektiğini göstermektedir.
+Kira Bedelinin Ödeme Yeri ve Şekli (Götürülecek Borçlar ve Havale Giderleri)
 
-# 
+Kira bedeli, Türk Borçlar Kanunu'nun 89\. maddesi uyarınca bir para borcu olup, alacaklının (kiraya verenin) ödeme zamanındaki yerleşim yerinde ödenmesi gereken "götürülecek borçlardan"dır. Bu, kiracının kira bedelini kiraya verene ulaştırma sorumluluğunu taşıdığı anlamına gelir.
 
-# Taraflar arasında kira artış oranı belirlenmemişse, kira bedeli, bir önceki kira yılında TÜFE'deki on iki aylık ortalamalara göre değişim oranını aşmamak kaydıyla, hâkim tarafından kiralananın durumu ve bölgedeki emsal değerler göz önünde bulundurularak hakkaniyete uygun bir şekilde belirlenir (TBK Madde 344/2).
+Yargıtay Hukuk Genel Kurulu kararları, kira bedelinin kiraya verenin banka hesabına yatırılması durumunda banka tarafından kesilen havale giderlerinden kiracının sorumlu olduğunu açıkça belirtmiştir. Eğer bu giderler kira bedelinden düşülerek ödeme yapılırsa, ödeme eksik sayılır ve yasal ödeme olarak kabul edilmez. Bu durum, kiracının temerrüde düşmesine ve tahliye taleplerine yol açabilir. Kiraya veren, sözleşme hükümlerine göre artışlı ödenmesi gereken kira alacağının artışsız ödenmesi durumunda, eksik ödenen kısımdan vazgeçmiş sayılmaz. Bu katı yorum, kiracıların ödemelerini yaparken son derece dikkatli olmaları gerektiğini vurgulamaktadır.
 
-# 
+5\. Kira Güvencesi (Depozito)
 
-# **5 Yıl ve Üzeri Kira Sözleşmelerinde Kira Bedelinin Tespiti (Hakkaniyet İndirimi)**
+Kira sözleşmelerinde depozito (güvence bedeli), kiraya verenin olası zararlarını veya kiracının yerine getirmediği yükümlülüklerini teminat altına almak amacıyla alınan bir bedeldir.
 
-# 
+Depozitonun Hukuki Niteliği ve Amacı
 
-# Taraflar arasında kira artış oranı konusunda bir anlaşma olup olmadığına bakılmaksızın, beş yıldan uzun süreli veya beş yıldan sonra yenilenen kira sözleşmelerinde ve bundan sonraki her beş yılın sonunda, yeni kira yılında uygulanacak kira bedeli hâkim tarafından belirlenir (TBK Madde 344/3). Bu belirleme yapılırken TÜFE'deki on iki aylık ortalamalara göre değişim oranı, kiralananın durumu ve emsal kira bedelleri dikkate alınarak hakkaniyete uygun bir karar verilir. Bu tür durumlarda, geçici %25 kira artışı sınırlaması uygulanmaz.
+Depozito, kira sözleşmesi süresince kiracının kiralanana verebileceği zararlar, ödenmeyen aidatlar, elektrik, su, doğal gaz gibi abonelik borçları gibi yükümlülüklerini yerine getirmemesi ihtimaline karşılık kiraya verene sağlanan bir teminattır. Kanunen depozito alınması zorunlu değildir; taraflar depozito almadan da kira sözleşmesi yapabilirler.
 
-# 
+Depozito Miktarı ve Saklanma Koşulları (Banka Hesabına Yatırma Zorunluluğu)
 
-# **Hakkaniyet İndirimi:** Yargıtay içtihatları, bu tür kira tespit davalarında kiracı lehine %5 ila %20 oranında bir hakkaniyet indirimi yapılmasını zorunlu kılmaktadır. Bu indirim, bilirkişilerce tespit edilen aylık kira bedeli üzerinden uygulanmalıdır. Hakkaniyet indirimi, kiracının uzun süreli kiracılık ilişkisi nedeniyle kazandığı "iyi niyet" veya yerleşiklik durumunu gözeten, hukuki bir dengeleme mekanizmasıdır. Bu, kiraya verenin piyasa rayiçlerine göre kira bedelini belirlemesinin önünde bir engel teşkil etmese de, eski kiracının bu durumdan tamamen olumsuz etkilenmemesini sağlamayı amaçlar. Mahkemece bu indirimin uygulanmaması, kararın üst mahkeme tarafından bozulması sebebidir.
+Depozito miktarı, tarafların serbest iradesiyle belirlenebilse de, konut ve çatılı işyeri kiralarında kanunen bir sınırlama getirilmiştir: bu tür kiralamalarda güvence **üç aylık kira bedelini aşamaz** (TBK Madde 342). Bu sınırlama, kiracının daha zayıf taraf olması nedeniyle getirilmiş koruyucu bir hükümdür.
 
-# 
+Önemli bir düzenleme ise, güvence olarak para veya kıymetli evrak verilmesi kararlaştırılmışsa, kiracının bu bedeli doğrudan kiraya verene vermek yerine, kiraya verenin onayı olmaksızın çekilememek üzere vadeli bir tasarruf hesabına yatırması veya kıymetli evrakı bir bankaya depo etmesidir. Bu zorunluluk, depozitonun enflasyon karşısında değer kaybetmesini önlemeyi ve kiraya verenin depozitoyu keyfi olarak kullanmasını engellemeyi amaçlar. Böylece, kira sözleşmesi sona erdiğinde kiracının iade alacağı miktar, yatırdığı miktarın faiz işlemiş hali olacaktır.
 
-# Kira tespit davası, yalnızca konut ve çatılı işyeri kiralarından doğan uyuşmazlıklarda açılabilir. Davayı açan tarafın hukuki yararı bulunmalıdır. 1 Eylül 2023 tarihinden itibaren, kira tespit davaları da dahil olmak üzere birçok kira uyuşmazlığında arabuluculuk yolu zorunlu bir dava şartı haline gelmiştir. Arabuluculuk başvurusu, dava açma süresini durdurur.
+Bu düzenleme, 1 Temmuz 2020 tarihinden sonra yapılan kira sözleşmeleri için geçerlidir. Bu tarihten önceki sözleşmelerde sözleşme serbestisi geçerli olup, Yargıtay kararları eski depozitoların iadesinde güncel değerin belirlenmesi gerektiğini belirtmiştir. Bu yasal değişiklik, depozito yönetiminde kiracı lehine önemli bir güç dengesi sağlamıştır.
 
-# 
+Depozitonun İadesi ve Mahsup Koşulları
 
-# Kira tespit davaları, kısmi veya belirsiz alacak davası olarak açılamaz ve dava dilekçesinde belirtilen kira bedeli, yargılama sırasında "ıslah" yoluyla artırılamaz. Yargıtay Hukuk Genel Kurulu kararları bu konuda kesinlik arz etmektedir. Kira tespitine ilişkin mahkeme kararları, kesinleşmeden icraya konulamaz.
+Depozitonun iadesi için öncelikle kira sözleşmesinin usulüne uygun olarak sona ermesi gerekmektedir. Kiralananın tahliyesi ve anahtarının kiraya verene teslimi ile kira sözleşmesi sona erer. Kiraya veren, makul bir süre içinde kiralananı kontrol etmeli ve herhangi bir zarar veya borç olup olmadığını incelemelidir. Kiracı, olağan kullanımdan kaynaklanan yıpranma ve eskime payından sorumlu değildir.
 
-# 
+Eğer kiralananda olağan yıpranmayı aşan bir zarar veya kiracıdan kaynaklanan ödenmemiş borçlar (aidat, abonelik vb.) varsa, kiraya veren bu tutarları depozitodan mahsup edebilir. Ancak depozito banka hesabında tutuluyorsa, kiracının rızası olmadan veya kesinleşmiş bir mahkeme kararı/icra takibi olmaksızın kiraya veren depozitodan kesinti yapamaz.
 
-# **Kira Bedelinin Ödeme Yeri ve Şekli (Götürülecek Borçlar ve Havale Giderleri)**
+Kiracıyı koruyan önemli bir hüküm de şudur: Kiraya veren, kira sözleşmesinin sona ermesini izleyen üç ay içinde kiracıya karşı kira sözleşmesiyle ilgili bir dava açtığını veya icra takibine giriştiğini bankaya yazılı olarak bildirmezse, banka kiracının istemi üzerine güvenceyi geri vermekle yükümlüdür. Bu süre ve şekil şartına uyulmaması, bankanın kiracının talebiyle iade yapmasını zorunlu kılar.
 
-# 
+**Depozitonun Kiradan Mahsup Edilmesi Yasağı:** Yerleşik Yargıtay uygulamasına göre, **kiracı, kira ilişkisi devam ettiği sürece depozitoyu kira bedeline mahsup edemez**. Depozitonun amacı, kira sözleşmesinin sonunda ortaya çıkabilecek zararları veya ödenmeyen borçları karşılamaktır. Kiracının, kiralanandan çıkmadan önceki son ayların kirasını depozitodan düşerek ödememesi hukuka uygun değildir, zira kiralananın olağan ve gereği gibi kullanılıp kullanılmadığı sözleşmenin sona ermesiyle tespit edilebilecektir. Bu kural, kiracıların stratejik olarak son kira ödemelerini yapmaktan kaçınmasını engellemeyi ve depozitonun asıl amacına hizmet etmesini sağlamayı amaçlar.
 
-# Kira bedeli, Türk Borçlar Kanunu'nun 89\. maddesi uyarınca bir para borcu olup, alacaklının (kiraya verenin) ödeme zamanındaki yerleşim yerinde ödenmesi gereken "götürülecek borçlardan"dır. Bu, kiracının kira bedelini kiraya verene ulaştırma sorumluluğunu taşıdığı anlamına gelir.
+Kiraya veren depozitoyu iade etmezse, kiracı icra takibi başlatabilir veya dava açabilir.
 
-# 
+6\. Kira Sözleşmesinin Sona Erme Nedenleri ve Tahliye Süreçleri
 
-# Yargıtay Hukuk Genel Kurulu kararları, kira bedelinin kiraya verenin banka hesabına yatırılması durumunda banka tarafından kesilen havale giderlerinden kiracının sorumlu olduğunu açıkça belirtmiştir. Eğer bu giderler kira bedelinden düşülerek ödeme yapılırsa, ödeme eksik sayılır ve yasal ödeme olarak kabul edilmez. Bu durum, kiracının temerrüde düşmesine ve tahliye taleplerine yol açabilir. Kiraya veren, sözleşme hükümlerine göre artışlı ödenmesi gereken kira alacağının artışsız ödenmesi durumunda, eksik ödenen kısımdan vazgeçmiş sayılmaz. Bu katı yorum, kiracıların ödemelerini yaparken son derece dikkatli olmaları gerektiğini vurgulamaktadır.
+Kira sözleşmesi, sürekli borç ilişkisi kuran bir sözleşme olduğundan, diğer sözleşme türlerinden farklı sona erme nedenleri ve prosedürlere tabidir. Taraflar, sözleşmenin hangi koşullarda sona ereceğini belirleyebilirler, ancak bu hükümler yasalara aykırı olamaz.
 
-# 
+Sona Erme Halleri
 
-# **5\. Kira Güvencesi (Depozito)**
-
-# 
-
-# Kira sözleşmelerinde depozito (güvence bedeli), kiraya verenin olası zararlarını veya kiracının yerine getirmediği yükümlülüklerini teminat altına almak amacıyla alınan bir bedeldir.
-
-# 
-
-# **Depozitonun Hukuki Niteliği ve Amacı**
-
-# 
-
-# Depozito, kira sözleşmesi süresince kiracının kiralanana verebileceği zararlar, ödenmeyen aidatlar, elektrik, su, doğal gaz gibi abonelik borçları gibi yükümlülüklerini yerine getirmemesi ihtimaline karşılık kiraya verene sağlanan bir teminattır. Kanunen depozito alınması zorunlu değildir; taraflar depozito almadan da kira sözleşmesi yapabilirler.
-
-# 
-
-# **Depozito Miktarı ve Saklanma Koşulları (Banka Hesabına Yatırma Zorunluluğu)**
-
-# 
-
-# Depozito miktarı, tarafların serbest iradesiyle belirlenebilse de, konut ve çatılı işyeri kiralarında kanunen bir sınırlama getirilmiştir: bu tür kiralamalarda güvence **üç aylık kira bedelini aşamaz** (TBK Madde 342). Bu sınırlama, kiracının daha zayıf taraf olması nedeniyle getirilmiş koruyucu bir hükümdür.
-
-# 
-
-# Önemli bir düzenleme ise, güvence olarak para veya kıymetli evrak verilmesi kararlaştırılmışsa, kiracının bu bedeli doğrudan kiraya verene vermek yerine, kiraya verenin onayı olmaksızın çekilememek üzere vadeli bir tasarruf hesabına yatırması veya kıymetli evrakı bir bankaya depo etmesidir. Bu zorunluluk, depozitonun enflasyon karşısında değer kaybetmesini önlemeyi ve kiraya verenin depozitoyu keyfi olarak kullanmasını engellemeyi amaçlar. Böylece, kira sözleşmesi sona erdiğinde kiracının iade alacağı miktar, yatırdığı miktarın faiz işlemiş hali olacaktır.
-
-# 
-
-# Bu düzenleme, 1 Temmuz 2020 tarihinden sonra yapılan kira sözleşmeleri için geçerlidir. Bu tarihten önceki sözleşmelerde sözleşme serbestisi geçerli olup, Yargıtay kararları eski depozitoların iadesinde güncel değerin belirlenmesi gerektiğini belirtmiştir. Bu yasal değişiklik, depozito yönetiminde kiracı lehine önemli bir güç dengesi sağlamıştır.
-
-# 
-
-# **Depozitonun İadesi ve Mahsup Koşulları**
-
-# 
-
-# Depozitonun iadesi için öncelikle kira sözleşmesinin usulüne uygun olarak sona ermesi gerekmektedir. Kiralananın tahliyesi ve anahtarının kiraya verene teslimi ile kira sözleşmesi sona erer. Kiraya veren, makul bir süre içinde kiralananı kontrol etmeli ve herhangi bir zarar veya borç olup olmadığını incelemelidir. Kiracı, olağan kullanımdan kaynaklanan yıpranma ve eskime payından sorumlu değildir.
-
-# 
-
-# Eğer kiralananda olağan yıpranmayı aşan bir zarar veya kiracıdan kaynaklanan ödenmemiş borçlar (aidat, abonelik vb.) varsa, kiraya veren bu tutarları depozitodan mahsup edebilir. Ancak depozito banka hesabında tutuluyorsa, kiracının rızası olmadan veya kesinleşmiş bir mahkeme kararı/icra takibi olmaksızın kiraya veren depozitodan kesinti yapamaz.
-
-# 
-
-# Kiracıyı koruyan önemli bir hüküm de şudur: Kiraya veren, kira sözleşmesinin sona ermesini izleyen üç ay içinde kiracıya karşı kira sözleşmesiyle ilgili bir dava açtığını veya icra takibine giriştiğini bankaya yazılı olarak bildirmezse, banka kiracının istemi üzerine güvenceyi geri vermekle yükümlüdür. Bu süre ve şekil şartına uyulmaması, bankanın kiracının talebiyle iade yapmasını zorunlu kılar.
-
-# 
-
-# **Depozitonun Kiradan Mahsup Edilmesi Yasağı:** Yerleşik Yargıtay uygulamasına göre, **kiracı, kira ilişkisi devam ettiği sürece depozitoyu kira bedeline mahsup edemez**. Depozitonun amacı, kira sözleşmesinin sonunda ortaya çıkabilecek zararları veya ödenmeyen borçları karşılamaktır. Kiracının, kiralanandan çıkmadan önceki son ayların kirasını depozitodan düşerek ödememesi hukuka uygun değildir, zira kiralananın olağan ve gereği gibi kullanılıp kullanılmadığı sözleşmenin sona ermesiyle tespit edilebilecektir. Bu kural, kiracıların stratejik olarak son kira ödemelerini yapmaktan kaçınmasını engellemeyi ve depozitonun asıl amacına hizmet etmesini sağlamayı amaçlar.
-
-# 
-
-# Kiraya veren depozitoyu iade etmezse, kiracı icra takibi başlatabilir veya dava açabilir.
-
-# 
-
-# **6\. Kira Sözleşmesinin Sona Erme Nedenleri ve Tahliye Süreçleri**
-
-# 
-
-# Kira sözleşmesi, sürekli borç ilişkisi kuran bir sözleşme olduğundan, diğer sözleşme türlerinden farklı sona erme nedenleri ve prosedürlere tabidir. Taraflar, sözleşmenin hangi koşullarda sona ereceğini belirleyebilirler, ancak bu hükümler yasalara aykırı olamaz.
-
-# 
-
-# **Sona Erme Halleri**
-
-# 
-
-# Kira sözleşmesinin sona erme yöntemleri genel olarak şunlardır:
+Kira sözleşmesinin sona erme yöntemleri genel olarak şunlardır:
 
 * **Tarafların Karşılıklı Anlaşmasıyla Sona Erme:** Kiraya veren ve kiracı, karşılıklı olarak anlaşarak kira sözleşmesini sona erdirebilirler. Bu "bozma sözleşmesi"nin belirli bir şekil şartına bağlı olmaması mümkündür, ancak ispat kolaylığı açısından yazılı yapılması önem arz eder.  
 * **Sürenin Dolması (Belirli Süreli Sözleşmelerde Kiracının Fesih Hakkı):** Konut ve çatılı işyeri kiralarında, belirli süreli sözleşmelerin süresi dolduğunda, kiracı sürenin bitiminden en az on beş gün önce bildirimde bulunmadıkça sözleşme aynı koşullarla bir yıl için uzatılmış sayılır. Kiraya veren ise, sözleşme süresinin bitimine dayanarak sözleşmeyi sona erdiremez. Bu, kiracıyı korumaya yönelik önemli bir hükümdür. Ancak, on yıllık uzama süresi sonunda kiraya veren, bu süreyi izleyen her uzama yılının bitiminden en az üç ay önce bildirimde bulunmak koşuluyla, herhangi bir sebep göstermeksizin sözleşmeye son verebilir. Bu 10 yıllık sürenin başlangıcı, sözleşmenin imza tarihi değil, belirli süreli kira sözleşmesinin sona erdiği tarihtir.  
@@ -239,9 +161,7 @@ Bu hususların yazılı bir sözleşmede detaylıca düzenlenmesi, taraflar aras
 
 **Tahliye Davaları ve Şartları**
 
-# 
-
-# Tahliye, kiracının kiralanmış taşınmazdan kamu gücü kullanılarak çıkarılması işlemidir. Tahliye davaları, Türk Borçlar Kanunu'nun 350-352. maddeleri arasında düzenlenmiştir.
+Tahliye, kiracının kiralanmış taşınmazdan kamu gücü kullanılarak çıkarılması işlemidir. Tahliye davaları, Türk Borçlar Kanunu'nun 350-352. maddeleri arasında düzenlenmiştir.
 
 * **Zorunlu Arabuluculuk:** 1 Eylül 2023 tarihinden itibaren, Sulh Hukuk Mahkemeleri'nde görülecek kira uyuşmazlıklarında (tahliye davaları dahil) arabuluculuğa başvuru zorunlu bir dava şartı haline gelmiştir. Arabuluculuk süreci, dava açma süresini durdurur.  
 * Kiracının Temerrüdü Nedeniyle Tahliye:  
@@ -260,7 +180,7 @@ Bu hususların yazılı bir sözleşmede detaylıca düzenlenmesi, taraflar aras
   Kiraya veren, konut ve çatılı işyeri kiralarında, on yıllık uzama süresi sonunda, bu süreyi izleyen her uzama yılının bitiminden en az üç ay önce bildirimde bulunmak koşuluyla, herhangi bir sebep göstermeksizin sözleşmeye son verebilir. Bu hak, kiraya verenin mülkiyet hakkını koruma ve uzun süreli kira ilişkilerinde dengeyi sağlama amacı taşır.
 
 
-#### **Alıntılanan çalışmalar**
+Alıntılanan çalışmalar
 
 1. Madde 299 \- Prof. Dr. İlhan Helvacı Dersleri, erişim tarihi Haziran 21, 2025, [https://www.ilhanhelvacidersleri.com/turk-borclar-kanunu/turk-borclar-kanunu-madde-299](https://www.ilhanhelvacidersleri.com/turk-borclar-kanunu/turk-borclar-kanunu-madde-299)  
 2. 6098 SAYILI TÜRK BORÇLAR KANUNUNDA ... \- Hukuk Fakültesi, erişim tarihi Haziran 21, 2025, [https://hukuk.deu.edu.tr/wp-content/uploads/2017/11/42-NEVRAN-SUICMEZ.pdf](https://hukuk.deu.edu.tr/wp-content/uploads/2017/11/42-NEVRAN-SUICMEZ.pdf)  
